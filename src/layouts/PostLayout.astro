@@ -4,15 +4,11 @@ import BaseLayout from "./BaseLayout.astro";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 
-export interface Props extends BlogSchema {
-  headings?: { depth: number; slug: string; text: string }[];
-}
+export interface Props extends BlogSchema {}
 
-const { title, description, pubDate, updatedDate, heroImage, badge, tags = [], headings = [] } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, badge, tags = [] } = Astro.props;
 dayjs.extend(localizedFormat);
 const displayDate = dayjs(pubDate).format("ll")
-
-const tocItems = headings.filter((h) => h.depth <= 3);
 ---
 
 <BaseLayout title={title} description={description} image={heroImage}, ogType="article">
@@ -44,28 +40,46 @@ const tocItems = headings.filter((h) => h.depth <= 3);
       <slot />
     </article>
 
-    {
-      tocItems.length > 0 && (
-        <aside class="hidden xl:block fixed right-[max(1rem,calc((100vw-1200px)/2))] top-24 w-56 max-h-[calc(100vh-8rem)] overflow-y-auto">
-          <nav class="border-l-2 border-base-300 pl-4 text-sm">
-            <p class="font-bold mb-2 text-base-content/60">目录</p>
-            <ul class="space-y-2">
-              {
-                tocItems.map((h) => (
-                  <li class={h.depth === 3 ? "ml-4" : ""}>
-                    <a
-                      href={`#${h.slug}`}
-                      class="text-base-content/60 hover:text-primary transition-colors no-underline block"
-                    >
-                      {h.text}
-                    </a>
-                  </li>
-                ))
-              }
-            </ul>
-          </nav>
-        </aside>
-      )
-    }
+    <aside id="toc-sidebar" class="hidden xl:block fixed right-[max(1rem,calc((100vw-1200px)/2))] top-24 w-56 max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <nav class="border-l-2 border-base-300 pl-4 text-sm">
+        <p class="font-bold mb-2 text-base-content/60">目录</p>
+        <ul id="toc-list" class="space-y-2">
+        </ul>
+      </nav>
+    </aside>
   </main>
 </BaseLayout>
+
+<script>
+  // 从文章 DOM 中提取 h2/h3 生成目录
+  document.addEventListener("DOMContentLoaded", function () {
+    const article = document.querySelector("article");
+    const tocList = document.getElementById("toc-list");
+    const tocSidebar = document.getElementById("toc-sidebar");
+    if (!article || !tocList || !tocSidebar) return;
+
+    const headings = article.querySelectorAll("h2, h3");
+    if (headings.length === 0) {
+      tocSidebar.classList.add("hidden");
+      return;
+    }
+
+    headings.forEach((h) => {
+      const slug = h.id || h.textContent.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w一-鿿-]/g, "");
+      if (!h.id) h.id = slug;
+
+      const li = document.createElement("li");
+      if (h.tagName === "H3") li.classList.add("ml-4");
+
+      const a = document.createElement("a");
+      a.href = "#" + slug;
+      a.className = "text-base-content/60 hover:text-primary transition-colors no-underline block";
+      a.textContent = h.textContent;
+
+      li.appendChild(a);
+      tocList.appendChild(li);
+    });
+
+    tocSidebar.classList.remove("hidden");
+  });
+</script>

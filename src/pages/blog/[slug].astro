@@ -18,7 +18,7 @@ interface Props {
 
 const { entry } = Astro.props;
 const post: BlogSchema = entry.data;
-const { Content, headings } = await entry.render();
+const { Content } = await entry.render();
 ---
 
 <PostLayout
@@ -29,7 +29,6 @@ const { Content, headings } = await entry.render();
   updatedDate={post.updatedDate}
   badge={post.badge}
   tags={post.tags}
-  headings={headings}
 >
   <Content />
 </PostLayout>
