@@ -2,7 +2,7 @@
 title: "光伏组件EL裁剪工具"
 description: "基于实际项目源码的案例分析教程，详解EL太阳能电池板检测中的计算机视觉、Flask后端和工程部署"
 pubDate: "May 20 2026"
-heroImage: "/images/blog/el-crop-v1/webpe.png"
+heroImage: "/blog/el-crop-v1/文章内容/webpe.png"
 badge: "教程"
 tags: ["项目", "教程", "Python"]
 ---
@@ -39,7 +39,7 @@ tags: ["项目", "教程", "Python"]
 
 下图是一张实际的 EL 检测照片样本，可以看到电池片在通电后发出暗红色的 EL 光：
 
-![EL检测样本照片](/images/blog/el-crop-v1/S0003627.JPG)
+![EL检测样本照片](/blog/el-crop-v1/文章图片/S0003627.JPG)
 
 *图：太阳能电池板 EL 检测照片（原始拍摄）*
 
@@ -56,7 +56,7 @@ tags: ["项目", "教程", "Python"]
 
 | 原始EL照片（透视畸变） | 裁剪矫正后（标准矩形） |
 |:---:|:---:|
-| ![原始照片](/images/blog/el-crop-v1/S0003712.JPG) | ![裁剪结果](/images/blog/el-crop-v1/sample_el.jpg) |
+| ![原始照片](/blog/el-crop-v1/文章图片/S0003712.JPG) | ![裁剪结果](/blog/el-crop-v1/文章图片/sample_el.jpg) |
 
 *图：左侧为原始拍摄（存在透视畸变），右侧为裁剪程序自动检测角点并矫正后的标准矩形结果*
 
@@ -72,7 +72,7 @@ tags: ["项目", "教程", "Python"]
 
 ## 2. 整体架构概览
 
-![系统架构图](/images/blog/el-crop-v1/diagram_architecture.png)
+![系统架构图](/blog/el-crop-v1/文章图片/diagram_architecture.png)
 
 *图：系统整体架构 — 浏览器（前端）→ Flask（后端）→ OpenCV（视觉计算）三层分离*
 
@@ -117,7 +117,7 @@ tags: ["项目", "教程", "Python"]
 
 下面是项目的实际文件目录截图：
 
-![项目目录结构](/images/blog/el-crop-v1/00_directory_structure.png)
+![项目目录结构](/blog/el-crop-v1/文章图片/00_directory_structure.png)
 
 *图：项目根目录的实际文件列表*
 
@@ -152,7 +152,7 @@ tags: ["项目", "教程", "Python"]
 │       │   └── img_*.jpg       # 已处理图片缓存
 │       └── ...
 │
-├── /images/blog/el-crop-v1/                # 本教程的截图和示意图
+├── /blog/el-crop-v1/文章图片/                # 本教程的截图和示意图
 │
 └── .claude/                    # Claude AI 配置文件
 ```
@@ -210,7 +210,7 @@ import concurrent.futures   # 多线程批量处理
 
 ### 5.1 算法总流程图
 
-![Hough直线检测原理](/images/blog/el-crop-v1/diagram_hough_lines.png)
+![Hough直线检测原理](/blog/el-crop-v1/文章图片/diagram_hough_lines.png)
 
 *图：Hough直线检测法示意图。红色=顶边、蓝色=底边、黄色=左边、紫色=右边。内部短线条为电池片栅线（被跳过），仅保留跨越面板的边框长线。橙色圆点为检测到的四个角点。*
 
@@ -250,7 +250,7 @@ import concurrent.futures   # 多线程批量处理
 
 #### 5.2.1 角点排序（`order_corners`）
 
-![角点检测与透视变换](/images/blog/el-crop-v1/diagram_corner_detection.png)
+![角点检测与透视变换](/blog/el-crop-v1/文章图片/diagram_corner_detection.png)
 
 *图：左侧为原始畸变图像中的四个角点（橙色圆点），右侧为经过透视变换矫正后的标准矩形。TL=左上、TR=右上、BR=右下、BL=左下。*
 
@@ -506,13 +506,13 @@ for fut, idx in futures.items():
 
 ### 7.2 登录页面
 
-![登录页面](/images/blog/el-crop-v1/01_login_page.png)
+![登录页面](/blog/el-crop-v1/文章图片/01_login_page.png)
 
 *图：工具启动后打开的登录页面，输入用户名和密码即可登录。*
 
 ### 7.3 已登录主界面
 
-![主界面](/images/blog/el-crop-v1/Logged-in-interface.png)
+![主界面](/blog/el-crop-v1/文章图片/Logged-in-interface.png)
 
 *图：登录后的主界面。包含图片上传区、裁剪预览区域、参数设置等核心功能模块。*
 
@@ -601,7 +601,7 @@ ctx.verify_mode = ssl.CERT_NONE
 
 启动器提供可视化管理界面（如下图所示），功能包括：
 
-![启动器界面](/images/blog/el-crop-v1/00_launcher_file.png)  *(实际启动器程序图标和位置)*
+![启动器界面](/blog/el-crop-v1/文章图片/00_launcher_file.png)  *(实际启动器程序图标和位置)*
 
 | 功能 | 技术实现 |
 |------|---------|
@@ -787,7 +787,7 @@ def _compute_analysis(corrections):
 2. 检测面板间分隔缝 → 分割为独立面板
 3. 逐个裁剪并统一尺寸输出
 
-![无人机模式示意图](/images/blog/el-crop-v1/diagram_drone_mode.png)
+![无人机模式示意图](/blog/el-crop-v1/文章图片/diagram_drone_mode.png)
 
 *图：无人机模式的核心流程 — 从一张包含多块面板的照片中，自适应检测面板间暗缝，将各面板分割并独立裁剪输出。*
 
@@ -795,7 +795,7 @@ def _compute_analysis(corrections):
 
 无人机模式可将一张照片中自动检测到的面板逐一裁剪输出。下面是实际裁剪的一个面板结果：
 
-![无人机裁剪结果](/images/blog/el-crop-v1/drone_crop_result.jpg)
+![无人机裁剪结果](/blog/el-crop-v1/文章图片/drone_crop_result.jpg)
 
 *图：无人机模式自动裁剪输出的单个面板结果（5107×1469 像素），已经过透视变换矫正为标准矩形。*
 
@@ -912,4 +912,4 @@ def _panel_is_complete(pts_full, W, H, margin_frac=0.02):
 > 本教程基于 **EL裁剪工具** 项目源码编写。
 > 这是一个将计算机视觉、Web 服务、桌面应用三者结合的完整工业案例。
 > 
-> 截图和示意图位于项目根目录的 [`/images/blog/el-crop-v1/`](https://github.com/AChengLinus/EL_cropped) 文件夹下。
+> 截图和示意图位于项目根目录的 [`/blog/el-crop-v1/文章图片/`](https://github.com/AChengLinus/EL_cropped) 文件夹下。

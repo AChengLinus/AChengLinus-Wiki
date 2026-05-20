@@ -2,10 +2,10 @@
 title: "👀微信/QQ/TIM防撤回补丁"
 description: "适用于 Windows 下 PC 版微信/QQ/TIM的防撤回补丁。支持最新版微信/QQ/TIM，其中微信能够选择安装多开功能"
 pubDate: "Sep 10 2022"
-heroImage: "/images/blog/revokemsg/logo.webp"
+heroImage: "/blog/revokemsg/文章内容/logo.webp"
 tags: ["程序"]
 ---
-<p><img src="/images/blog/revokemsg/revoke.webp" alt=""></li>
+<p><img src="/blog/revokemsg/文章图片/revoke.webp" alt=""></li>
 # 👀微信/QQ/TIM防撤回补丁
 适用于 Windows 下 PC 版微信/QQ/TIM的防撤回补丁。**支持最新版微信/QQ/TIM**，其中微信能够选择安装多开功能。
 
@@ -30,7 +30,7 @@ tags: ["程序"]
 附带产物：[一个通用的微信多开工具](https://github.com/huiyadanli/RevokeMsgPatcher/tree/master/RevokeMsgPatcher.MultiInstance)
 
 ## 📷截图
-<p><img src="/images/blog/revokemsg/screenshot.webp" alt=""></li>
+<p><img src="/blog/revokemsg/文章图片/screenshot.webp" alt=""></li>
 ## 🔨使用方法
 
 1. 首先，你的系统需要满足以下条件：
