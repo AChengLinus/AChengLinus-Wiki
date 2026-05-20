@@ -18,6 +18,16 @@ const { page } = Astro.props;
     <div class="text-3xl w-full font-bold">笔记</div>
   </div>
 
+  <div class="mb-5">
+    <input
+      id="search-input"
+      type="text"
+      placeholder="搜索笔记（支持单字匹配）..."
+      class="input input-bordered w-full"
+      oninput="filterPosts(this.value)"
+    />
+  </div>
+
   {
     page.data.length === 0 ? (
       <div class="bg-base-200 border-l-4 border-secondary w-full p-4 min-w-full">
@@ -25,9 +35,9 @@ const { page } = Astro.props;
         <p>There are no blog posts to show at the moment. Check back later!</p>
       </div>
     ) : (
-      <ul>
+      <ul id="posts-list">
         {page.data.map((post) => (
-          <>
+          <li class="post-item">
             <HorizontalCard
               title={post.data.title}
               img={post.data.heroImage}
@@ -39,7 +49,7 @@ const { page } = Astro.props;
               date={post.data.pubDate}
             />
             <div class="divider my-0" />
-          </>
+          </li>
         ))}
       </ul>
     )
@@ -86,3 +96,20 @@ const { page } = Astro.props;
     }
   </div>
 </BaseLayout>
+
+<script>
+  function filterPosts(value) {
+    const items = document.querySelectorAll(".post-item");
+    const keywords = value.trim();
+    items.forEach((item) => {
+      if (!keywords) {
+        item.style.display = "";
+        return;
+      }
+      const text = item.textContent;
+      // 单字匹配：每个输入字符都独立匹配
+      const match = [...keywords].every((char) => text.includes(char));
+      item.style.display = match ? "" : "none";
+    });
+  }
+</script>

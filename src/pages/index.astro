@@ -5,6 +5,8 @@ import { getCollection } from "astro:content";
 import createSlug from "../lib/createSlug"
 
 const posts = (await getCollection("blog")).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const last_posts = posts.slice(0, 3);
 ---
 
 <BaseLayout sideBarActiveItemID="home">
@@ -43,20 +45,9 @@ const posts = (await getCollection("blog")).sort((a, b) => b.data.pubDate.valueO
     <div class="text-3xl w-full font-bold mb-5 mt-10">知识分享</div>
   </div>
 
-  <div class="mb-5">
-    <input
-      id="search-input"
-      type="text"
-      placeholder="搜索笔记..."
-      class="input input-bordered w-full"
-      oninput="filterPosts(this.value)"
-    />
-  </div>
-
-  <div id="posts-container">
   {
-    posts.map((post) => (
-      <div class="post-item">
+    last_posts.map((post) => (
+      <>
         <HorizontalCard
           title={post.data.title}
           img={post.data.heroImage}
@@ -64,29 +55,10 @@ const posts = (await getCollection("blog")).sort((a, b) => b.data.pubDate.valueO
           url={"/blog/" + createSlug(post.data.title, post.slug)}
           target="_self"
           badge={post.data.badge}
-          tags={post.data.tags}
           date={post.data.pubDate}
         />
         <div class="divider my-0" />
-      </div>
+      </>
     ))
   }
-  </div>
 </BaseLayout>
-
-<script>
-  function filterPosts(value) {
-    const items = document.querySelectorAll(".post-item");
-    const keywords = value.trim().toLowerCase();
-    items.forEach((item) => {
-      const text = item.textContent.toLowerCase();
-      if (!keywords) {
-        item.style.display = "";
-        return;
-      }
-      // 单字匹配：检查每个字符是否都出现在文本中
-      const match = keywords.split("").every((char) => text.includes(char));
-      item.style.display = match ? "" : "none";
-    });
-  }
-</script>

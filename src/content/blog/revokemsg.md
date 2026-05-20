@@ -2,7 +2,7 @@
 title: "👀微信/QQ/TIM防撤回补丁"
 description: "适用于 Windows 下 PC 版微信/QQ/TIM的防撤回补丁。支持最新版微信/QQ/TIM，其中微信能够选择安装多开功能"
 pubDate: "Sep 10 2022"
-heroImage: "/images/blog/revokemsg/防撤回补丁logo.webp"
+heroImage: "/images/blog/revokemsg/logo.webp"
 tags: ["程序"]
 ---
 <p><img src="/images/blog/revokemsg/revoke.webp" alt=""></li>
