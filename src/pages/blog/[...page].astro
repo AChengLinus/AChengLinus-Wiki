@@ -96,22 +96,23 @@ const { page } = Astro.props;
   </div>
 </BaseLayout>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const input = document.getElementById("search-input");
+<script is:inline>
+  (function() {
+    var input = document.getElementById("search-input");
     if (!input) return;
-    input.addEventListener("input", function () {
-      const items = document.querySelectorAll(".post-item");
-      const keywords = this.value.trim();
-      items.forEach((item) => {
-        if (!keywords) {
-          item.style.display = "";
-          return;
+    input.addEventListener("input", function() {
+      var items = document.querySelectorAll(".post-item");
+      var val = this.value.trim();
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (!val) { item.style.display = ""; continue; }
+        var text = item.textContent;
+        var match = true;
+        for (var j = 0; j < val.length; j++) {
+          if (text.indexOf(val[j]) === -1) { match = false; break; }
         }
-        const text = item.textContent;
-        const match = [...keywords].every((char) => text.includes(char));
         item.style.display = match ? "" : "none";
-      });
+      }
     });
-  });
+  })();
 </script>
