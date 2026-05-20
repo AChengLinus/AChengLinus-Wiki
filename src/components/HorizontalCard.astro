@@ -1,6 +1,5 @@
 ---
 const { title, img, desc, url, badge, tags, target = "_blank" } = Astro.props;
-import { Image } from "astro:assets";
 const tag_url = url.split("/").slice(0, -1).join("/") + "/tag";
 ---
 
@@ -11,11 +10,8 @@ const tag_url = url.split("/").slice(0, -1).join("/") + "/tag";
     <div class="hero-content flex-col md:flex-row">
       {
         img && (
-          <Image
+          <img
             src={img}
-            width={750}
-            height={422}
-            format="webp"
             alt={title}
             class="max-w-full md:max-w-[13rem] rounded-lg"
           />
