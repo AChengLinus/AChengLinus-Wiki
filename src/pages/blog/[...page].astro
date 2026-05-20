@@ -25,6 +25,7 @@ const { page } = Astro.props;
       placeholder="搜索笔记（支持单字匹配）..."
       class="input input-bordered w-full"
     />
+    <div id="search-status" class="text-sm opacity-60 mt-1"></div>
   </div>
 
   {
@@ -99,19 +100,31 @@ const { page } = Astro.props;
 <script is:inline>
   (function() {
     var input = document.getElementById("search-input");
+    var status = document.getElementById("search-status");
     if (!input) return;
     input.addEventListener("input", function() {
       var items = document.querySelectorAll(".post-item");
       var val = this.value.trim();
+      var visible = 0;
       for (var i = 0; i < items.length; i++) {
         var item = items[i];
-        if (!val) { item.style.display = ""; continue; }
+        if (!val) { item.style.display = ""; visible++; continue; }
         var text = item.textContent;
         var match = true;
         for (var j = 0; j < val.length; j++) {
           if (text.indexOf(val[j]) === -1) { match = false; break; }
         }
         item.style.display = match ? "" : "none";
+        if (match) visible++;
+      }
+      if (status) {
+        if (val && visible === 0) {
+          status.textContent = "未找到匹配的笔记";
+        } else if (val) {
+          status.textContent = "找到 " + visible + " 篇匹配笔记";
+        } else {
+          status.textContent = "";
+        }
       }
     });
   })();
