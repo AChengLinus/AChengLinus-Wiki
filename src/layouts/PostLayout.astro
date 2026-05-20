@@ -40,7 +40,7 @@ const displayDate = dayjs(pubDate).format("ll")
       <slot />
     </article>
 
-    <aside id="toc-sidebar" class="hidden xl:block w-56 shrink-0">
+    <aside id="toc-sidebar" class="hidden xl:block w-40 shrink-0">
       <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
         <nav class="border-l-2 border-base-300 pl-4 text-sm">
           <p class="font-bold mb-2 text-base-content/60">目录</p>
@@ -52,36 +52,39 @@ const displayDate = dayjs(pubDate).format("ll")
   </main>
 </BaseLayout>
 
-<script>
-  // 从文章 DOM 中提取 h2/h3 生成目录
-  document.addEventListener("DOMContentLoaded", function () {
-    const article = document.querySelector("article");
-    const tocList = document.getElementById("toc-list");
-    const tocSidebar = document.getElementById("toc-sidebar");
-    if (!article || !tocList || !tocSidebar) return;
+<script is:inline>
+  (function() {
+    var article = document.querySelector("article");
+    var list = document.getElementById("toc-list");
+    var sidebar = document.getElementById("toc-sidebar");
+    if (!article || !list || !sidebar) return;
 
-    const headings = article.querySelectorAll("h2, h3");
+    var headings = article.querySelectorAll("h2, h3");
     if (headings.length === 0) {
-      tocSidebar.classList.add("hidden");
+      sidebar.style.display = "none";
       return;
     }
 
-    headings.forEach((h) => {
-      const slug = h.id || h.textContent.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w一-鿿-]/g, "");
-      if (!h.id) h.id = slug;
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      var id = h.id;
+      if (!id) {
+        id = h.textContent.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9一-鿿-]/g, "");
+        h.id = id;
+      }
 
-      const li = document.createElement("li");
-      if (h.tagName === "H3") li.classList.add("ml-4");
+      var li = document.createElement("li");
+      if (h.tagName === "H3") li.style.marginLeft = "1rem";
 
-      const a = document.createElement("a");
-      a.href = "#" + slug;
+      var a = document.createElement("a");
+      a.href = "#" + id;
       a.className = "text-base-content/60 hover:text-primary transition-colors no-underline block";
       a.textContent = h.textContent;
 
       li.appendChild(a);
-      tocList.appendChild(li);
-    });
+      list.appendChild(li);
+    }
 
-    tocSidebar.classList.remove("hidden");
-  });
+    sidebar.classList.remove("hidden");
+  })();
 </script>
