@@ -14,7 +14,7 @@ const blogSchema = z.object({
 const dailySchema = z.object({
     title: z.string(),
     description: z.string(),
-    custom_link_label: z.string(),
+    custom_link_label: z.string().optional(),
     custom_link: z.string().optional(),
     updatedDate: z.coerce.date(),
     pricing: z.string().optional(),
