@@ -44,15 +44,15 @@ const displayDate = dayjs(pubDate).format("ll")
 
     {
       toc.length > 0 && (
-        <aside class="hidden xl:block w-60 shrink-0">
+        <aside class="hidden xl:block w-80 shrink-0">
           <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
             <nav class="border-l-2 border-base-300 pl-4 text-sm">
               <p class="font-bold mb-2 text-base-content/60">目录</p>
-              <ul class="space-y-2">
+              <ul id="toc-list" class="space-y-2">
                 {
                   toc.map((item) => (
                     <li class={item.depth === 3 ? "ml-4" : ""}>
-                      <a href={"#" + item.slug} class="text-base-content/60 hover:text-primary transition-colors no-underline block">{item.text}</a>
+                      <a href={"#" + item.slug} class="toc-link text-base-content/60 hover:text-primary transition-all duration-300 no-underline block">{item.text}</a>
                     </li>
                   ))
                 }
@@ -71,12 +71,55 @@ const displayDate = dayjs(pubDate).format("ll")
       (function() {
         var article = document.querySelector("article");
         if (!article) return;
+
+        // 给标题生成 id（兼容无 id 的情况）
         var hs = article.querySelectorAll("h2, h3");
         for (var i = 0; i < hs.length; i++) {
           var h = hs[i];
           if (!h.id) {
             h.id = h.textContent.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9一-鿿-]/g, "");
           }
+        }
+
+        // 滚动监听：高亮当前可见的目录项
+        var links = document.querySelectorAll(".toc-link");
+        if (links.length === 0) return;
+
+        // 先移除所有 active，再高亮指定项
+        function setActive(id) {
+          for (var i = 0; i < links.length; i++) {
+            var link = links[i];
+            if (link.getAttribute("href") === "#" + id) {
+              link.classList.remove("text-base-content/60", "font-normal");
+              link.classList.add("text-primary", "font-bold");
+            } else {
+              link.classList.remove("text-primary", "font-bold");
+              link.classList.add("text-base-content/60", "font-normal");
+            }
+          }
+        }
+
+        var observer = new IntersectionObserver(function(entries) {
+          var visible = [];
+          for (var i = 0; i < entries.length; i++) {
+            if (entries[i].isIntersecting) {
+              visible.push(entries[i].target);
+            }
+          }
+          if (visible.length > 0) {
+            // 选最靠上的可见标题
+            var top = visible[0];
+            for (var i = 1; i < visible.length; i++) {
+              if (visible[i].getBoundingClientRect().top < top.getBoundingClientRect().top) {
+                top = visible[i];
+              }
+            }
+            setActive(top.id);
+          }
+        }, { rootMargin: "-80px 0px -60% 0px" });
+
+        for (var i = 0; i < hs.length; i++) {
+          observer.observe(hs[i]);
         }
       })();
     </script>

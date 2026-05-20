@@ -512,7 +512,7 @@ for fut, idx in futures.items():
 
 ### 7.3 已登录主界面
 
-![主界面](/images/blog/el-crop-v1/Logged-in interface.png)
+![主界面](/images/blog/el-crop-v1/Logged-in-interface.png)
 
 *图：登录后的主界面。包含图片上传区、裁剪预览区域、参数设置等核心功能模块。*
 
@@ -690,7 +690,6 @@ def _hash_password(password, salt):
 |------|--------|
 | **管理员** | 裁剪图片 + 管理用户（增删改） |
 | **普通用户** | 仅裁剪图片 |
-
 ---
 
 ## 10. 学习系统（偏差累积）
