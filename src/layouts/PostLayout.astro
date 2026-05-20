@@ -14,9 +14,9 @@ const displayDate = dayjs(pubDate).format("ll")
 ---
 
 <BaseLayout title={title} description={description} image={heroImage} ogType="article" wide>
+  <a href="/blog" class="fixed top-20 left-4 lg:left-[calc(19rem+1rem)] z-50 btn btn-ghost btn-sm shadow-lg bg-base-100/80 backdrop-blur-sm rounded-full">&larr; 返回笔记列表</a>
   <main class="md:flex md:justify-center md:gap-8">
     <article class="prose prose-lg max-w-[750px] prose-img:mx-auto">
-      <a href="/blog" class="btn btn-ghost btn-sm pl-0 mb-4">&larr; 返回笔记列表</a>
       {heroImage && <img src={heroImage} alt={title} class="w-full mb-6" />}
       <h1 class="title my-2 text-4xl font-bold">{title}</h1>
       {pubDate && <time>{displayDate}</time>}
