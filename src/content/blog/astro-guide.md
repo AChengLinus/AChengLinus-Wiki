@@ -2,7 +2,7 @@
 title: "用 Astro 搭建一个高性能博客"
 description: "如何搭建个人博客，更加流畅使用个人博客"
 pubDate: "mar 18 2024"
-heroImage: "/wz.webp"
+heroImage: "/images/blog/astro-guide/wz.webp"
 badge: "正式1.0"
 tags: ["程序","网站"]
 ---
@@ -110,12 +110,12 @@ tags: ["程序","网站"]
 <ol>
 <li>进入 <a href="https://vercel.com/">Vercel</a> 然后注册一个账号；</li>
 <li>新建一个项目；
-<img src="/Astro文章图片/Astro01.png" alt=""></li>
+<img src="/images/blog/astro-guide/Astro01.png" alt=""></li>
 <li>选择你刚刚创建的仓库（这里拿之前的举例子）；
-<img src="/Astro文章图片/Astro02.png" alt=""></li>
+<img src="/images/blog/astro-guide/Astro02.png" alt=""></li>
 <li>点击 <code>Deploy</code>；</li>
 <li>看到满屏的烟花了吗？你成功了！
-<img src="/Astro文章图片/Astro03.png" alt=""></li>
+<img src="/images/blog/astro-guide/Astro03.png" alt=""></li>
 </ol>
 <h2 id="可能遇到的问题">可能遇到的问题</h2>
 <ol>
@@ -150,11 +150,11 @@ tags: ["程序","网站"]
 <h2 id="尾声我为什么选择-astro">尾声——我为什么选择 Astro</h2>
 <p>搭建个人博客有很多种途径，作者本人（我）曾在此吃了不少苦头。刚开始我买了云服务器准备使用 WordPress 搭建网站，结果发现这对服务器的要求太高了，WP 还会出一些奇怪的 BUG （比如某一个重要 .js 突然祭了，就写不了文章了）。于是乎，我找到了成本更低也更快捷的方法——Hexo。它拥有庞大的社区，解决方案也很成熟，很适合我这种没有基础的小白。问题就是，单从我个人体验来说，Hexo 并不像它简介说的一样快速，它太臃肿了，尤其是对于某些主题来说，东西太多太杂，资源浪费严重。如果你曾使用<a href="https://pagespeed.web.dev/analysis/https-old-saroprock-com/hf4ci40qpw?hl=en&form_factor=mobile">PageSpeed Insights (web.dev)</a>测试过 Hexo 站点，会发现它真的慢……</p>
 <p>下面是用 Butterfly 搭建的一个 Hexo 站点，仅有两篇文章：</p>
-<p><img src="/Astro文章图片/Astro04.png" alt=""></p>
+<p><img src="/images/blog/astro-guide/Astro04.png" alt=""></p>
 <p>我的老博客：</p>
-<p><img src="/Astro文章图片/Astro07.png" alt=""></p>
+<p><img src="/images/blog/astro-guide/Astro07.png" alt=""></p>
 <p>更不用说其他的了……</p>
-<p><img src="/Astro文章图片/Astro05.png" alt=""></p>
+<p><img src="/images/blog/astro-guide/Astro05.png" alt=""></p>
 <p>而下面是我现在的博客：</p>
-<p><img src="/Astro文章图片/Astro06.png" alt=""></p>
+<p><img src="/images/blog/astro-guide/Astro06.png" alt=""></p>
 <p>就我个人而言，Astro 是一个优于 Hexo 的替代品，那么我为什么不用 Astro 呢？</p> 

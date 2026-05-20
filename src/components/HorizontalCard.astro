@@ -1,6 +1,12 @@
 ---
-const { title, img, desc, url, badge, tags, target = "_blank" } = Astro.props;
+const { title, img, desc, url, badge, tags, target = "_blank", date } = Astro.props;
 const tag_url = url.split("/").slice(0, -1).join("/") + "/tag";
+
+const formatDate = (d) => {
+  if (!d) return "";
+  const dateObj = typeof d === "string" ? new Date(d) : d;
+  return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`;
+};
 ---
 
 <div
@@ -18,10 +24,13 @@ const tag_url = url.split("/").slice(0, -1).join("/") + "/tag";
         )
       }
       <div class="grow w-full">
-        <h1 class="text-xl font-bold">
-          {title}
-          {badge && <div class="badge badge-secondary mx-2">{badge}</div>}
-        </h1>
+        <div class="flex items-center justify-between">
+          <h1 class="text-xl font-bold">
+            {title}
+            {badge && <div class="badge badge-secondary mx-2">{badge}</div>}
+          </h1>
+          {date && <span class="text-sm opacity-60">{formatDate(date)}</span>}
+        </div>
         <p class="py-1 text-1xl">{desc}</p>
         <div class="card-actions justify-end">
           {
