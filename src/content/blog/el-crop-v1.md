@@ -1,16 +1,16 @@
 ---
-title: "华矩EL裁剪工具 V1.1 服务端 — 教学笔记"
+title: "光伏组件EL裁剪工具"
 description: "基于实际项目源码的案例分析教程，详解EL太阳能电池板检测中的计算机视觉、Flask后端和工程部署"
 pubDate: "May 20 2026"
-heroImage: "/images/blog/el-crop-v1/sample_el.jpg"
+heroImage: "/images/blog/el-crop-v1/webpe.png"
 badge: "教程"
 tags: ["项目", "教程", "Python"]
 ---
 
-# 华矩EL裁剪工具 V1.1 服务端 — 教学笔记
+# 光伏组件EL裁剪工具
 
 > 基于实际项目源码的案例分析教程
-> 项目路径：`华矩EL裁剪工具V1.1服务端/`
+> 项目路径：`EL裁剪工具/`
 
 ---
 
