@@ -1,17 +1,17 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import HorizontalShopItem from "../../components/HorizontalShopItem.astro";
+import HorizontalDailyItem from "../../components/HorizontalDailyItem.astro";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths({ paginate }) {
-  const items = await getCollection("store");
+  const items = await getCollection("daily");
   items.sort((a, b) => b.data.updatedDate.valueOf() - a.data.updatedDate.valueOf());
   return paginate(items, { pageSize: 10 });
 }
 const { page } = Astro.props;
 ---
 
-<BaseLayout title="Store" sideBarActiveItemID="store">
+<BaseLayout title="Daily" sideBarActiveItemID="daily">
   <div class="mb-5">
     <div class="text-3xl w-full font-bold">日常吐槽</div>
   </div>
@@ -19,7 +19,7 @@ const { page } = Astro.props;
     {
       page.data.map((item) => (
         <>
-          <HorizontalShopItem
+          <HorizontalDailyItem
             title={item.data.title}
             img={item.data.heroImage}
             desc={item.data.description}
@@ -29,7 +29,7 @@ const { page } = Astro.props;
             badge={item.data.badge}
             details={item.data.details}
             tags={item.data.tags}
-            url={"/store/" + item.slug}
+            url={"/daily/" + item.slug}
             custom_link={item.data.custom_link}
             custom_link_label={item.data.custom_link_label}
           />

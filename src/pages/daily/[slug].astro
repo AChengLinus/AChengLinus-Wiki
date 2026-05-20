@@ -1,10 +1,10 @@
 ---
 import { CollectionEntry, getCollection } from "astro:content";
-import { StoreSchema } from "../../content/config";
-import StoreItemLayout from "../../layouts/StoreItemLayout.astro";
+import { DailySchema } from "../../content/config";
+import DailyItemLayout from "../../layouts/DailyItemLayout.astro";
 
 export async function getStaticPaths() {
-  const itemEntries = await getCollection("store");
+  const itemEntries = await getCollection("daily");
   return itemEntries.map((entry) => ({
     params: { slug: entry.slug },
     props: { entry },
@@ -12,15 +12,15 @@ export async function getStaticPaths() {
 }
 
 interface Props {
-  entry: CollectionEntry<"store">;
+  entry: CollectionEntry<"daily">;
 }
 
 const { entry } = Astro.props;
-const item: StoreSchema = entry.data;
+const item: DailySchema = entry.data;
 const { Content } = await entry.render();
 ---
 
-<StoreItemLayout
+<DailyItemLayout
   title={item.title}
   description={item.description}
   heroImage={item.heroImage}
@@ -34,4 +34,4 @@ const { Content } = await entry.render();
   custom_link_label={item.custom_link_label}
 >
   <Content />
-</StoreItemLayout>
+</DailyItemLayout>

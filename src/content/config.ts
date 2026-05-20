@@ -11,7 +11,7 @@ const blogSchema = z.object({
     }).optional(),
 });
 
-const storeSchema = z.object({
+const dailySchema = z.object({
     title: z.string(),
     description: z.string(),
     custom_link_label: z.string(),
@@ -25,12 +25,12 @@ const storeSchema = z.object({
 });
 
 export type BlogSchema = z.infer<typeof blogSchema>;
-export type StoreSchema = z.infer<typeof storeSchema>;
+export type DailySchema = z.infer<typeof dailySchema>;
 
 const blogCollection = defineCollection({ schema: blogSchema });
-const storeCollection = defineCollection({ schema: storeSchema });
+const dailyCollection = defineCollection({ schema: dailySchema });
 
 export const collections = {
     'blog': blogCollection,
-    'store': storeCollection
+    'daily': dailyCollection
 }
