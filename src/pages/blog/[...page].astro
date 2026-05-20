@@ -24,7 +24,6 @@ const { page } = Astro.props;
       type="text"
       placeholder="搜索笔记（支持单字匹配）..."
       class="input input-bordered w-full"
-      oninput="filterPosts(this.value)"
     />
   </div>
 
@@ -98,18 +97,21 @@ const { page } = Astro.props;
 </BaseLayout>
 
 <script>
-  function filterPosts(value) {
-    const items = document.querySelectorAll(".post-item");
-    const keywords = value.trim();
-    items.forEach((item) => {
-      if (!keywords) {
-        item.style.display = "";
-        return;
-      }
-      const text = item.textContent;
-      // 单字匹配：每个输入字符都独立匹配
-      const match = [...keywords].every((char) => text.includes(char));
-      item.style.display = match ? "" : "none";
+  document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("search-input");
+    if (!input) return;
+    input.addEventListener("input", function () {
+      const items = document.querySelectorAll(".post-item");
+      const keywords = this.value.trim();
+      items.forEach((item) => {
+        if (!keywords) {
+          item.style.display = "";
+          return;
+        }
+        const text = item.textContent;
+        const match = [...keywords].every((char) => text.includes(char));
+        item.style.display = match ? "" : "none";
+      });
     });
-  }
+  });
 </script>
