@@ -4,9 +4,11 @@ import BaseLayout from "./BaseLayout.astro";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 
-export interface Props extends BlogSchema {}
+export interface Props extends BlogSchema {
+  toc?: { depth: number; text: string; slug: string }[];
+}
 
-const { title, description, pubDate, updatedDate, heroImage, badge, tags = [] } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, badge, tags = [], toc = [] } = Astro.props;
 dayjs.extend(localizedFormat);
 const displayDate = dayjs(pubDate).format("ll")
 ---
@@ -40,51 +42,43 @@ const displayDate = dayjs(pubDate).format("ll")
       <slot />
     </article>
 
-    <aside id="toc-sidebar" class="hidden xl:block w-40 shrink-0">
-      <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
-        <nav class="border-l-2 border-base-300 pl-4 text-sm">
-          <p class="font-bold mb-2 text-base-content/60">目录</p>
-          <ul id="toc-list" class="space-y-2">
-          </ul>
-        </nav>
-      </div>
-    </aside>
+    {
+      toc.length > 0 && (
+        <aside class="hidden xl:block w-40 shrink-0">
+          <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
+            <nav class="border-l-2 border-base-300 pl-4 text-sm">
+              <p class="font-bold mb-2 text-base-content/60">目录</p>
+              <ul class="space-y-2">
+                {
+                  toc.map((item) => (
+                    <li class={item.depth === 3 ? "ml-4" : ""}>
+                      <a href={"#" + item.slug} class="text-base-content/60 hover:text-primary transition-colors no-underline block">{item.text}</a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </nav>
+          </div>
+        </aside>
+      )
+    }
   </main>
 </BaseLayout>
 
-<script is:inline>
-  (function() {
-    var article = document.querySelector("article");
-    var list = document.getElementById("toc-list");
-    var sidebar = document.getElementById("toc-sidebar");
-    if (!article || !list || !sidebar) return;
-
-    var headings = article.querySelectorAll("h2, h3");
-    if (headings.length === 0) {
-      sidebar.style.display = "none";
-      return;
-    }
-
-    for (var i = 0; i < headings.length; i++) {
-      var h = headings[i];
-      var id = h.id;
-      if (!id) {
-        id = h.textContent.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9一-鿿-]/g, "");
-        h.id = id;
-      }
-
-      var li = document.createElement("li");
-      if (h.tagName === "H3") li.style.marginLeft = "1rem";
-
-      var a = document.createElement("a");
-      a.href = "#" + id;
-      a.className = "text-base-content/60 hover:text-primary transition-colors no-underline block";
-      a.textContent = h.textContent;
-
-      li.appendChild(a);
-      list.appendChild(li);
-    }
-
-    sidebar.classList.remove("hidden");
-  })();
-</script>
+{
+  toc.length > 0 && (
+    <script is:inline>
+      (function() {
+        var article = document.querySelector("article");
+        if (!article) return;
+        var hs = article.querySelectorAll("h2, h3");
+        for (var i = 0; i < hs.length; i++) {
+          var h = hs[i];
+          if (!h.id) {
+            h.id = h.textContent.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9一-鿿-]/g, "");
+          }
+        }
+      })();
+    </script>
+  )
+}

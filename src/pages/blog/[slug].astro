@@ -16,8 +16,32 @@ interface Props {
   entry: CollectionEntry<"blog">;
 }
 
+interface TocItem {
+  depth: number;
+  text: string;
+  slug: string;
+}
+
 const { entry } = Astro.props;
 const post: BlogSchema = entry.data;
+
+// 从原始 markdown body 提取标题（兼容 ## 和 <h2> 两种格式）
+const toc: TocItem[] = [];
+const headingRegex = /^(#{2,3})\s+(.+)$|<(h[23])(?:\s[^>]*)?>(.+?)<\/h[23]>/gm;
+let match;
+while ((match = headingRegex.exec(entry.body)) !== null) {
+  let depth: number, text: string;
+  if (match[1]) {
+    depth = match[1].length;
+    text = match[2].trim();
+  } else {
+    depth = parseInt(match[3][1]);
+    text = match[4].replace(/<[^>]+>/g, "").trim();
+  }
+  const slug = text.toLowerCase().replace(/\s+/g, "-").replace(/[^\w一-鿿-]/g, "");
+  toc.push({ depth, text, slug });
+}
+
 const { Content } = await entry.render();
 ---
 
@@ -29,6 +53,7 @@ const { Content } = await entry.render();
   updatedDate={post.updatedDate}
   badge={post.badge}
   tags={post.tags}
+  toc={toc}
 >
   <Content />
 </PostLayout>
