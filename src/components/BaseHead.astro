@@ -10,13 +10,13 @@ export interface Props {
 	ogType?: string;
 }
 
-const { title, description, image = '/images/site/social_img.webp', ogType = 'website' } = Astro.props;
+const { title, description, image = '/site/social_img.webp', ogType = 'website' } = Astro.props;
 ---
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" type="image/svg+xml" href="/images/site/favicon.svg" />
+<link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
 
 <!-- Primary Meta Tags -->
