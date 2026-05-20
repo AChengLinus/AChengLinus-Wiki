@@ -11,8 +11,8 @@ dayjs.extend(localizedFormat);
 const displayDate = dayjs(pubDate).format("ll")
 ---
 
-<BaseLayout title={title} description={description} image={heroImage}, ogType="article">
-  <main class="md:flex md:justify-center">
+<BaseLayout title={title} description={description} image={heroImage} ogType="article" wide>
+  <main class="md:flex md:justify-center md:gap-8">
     <article class="prose prose-lg max-w-[750px] prose-img:mx-auto">
       <a href="/blog" class="btn btn-ghost btn-sm pl-0 mb-4">&larr; 返回笔记列表</a>
       {heroImage && <img src={heroImage} alt={title} class="w-full mb-6" />}
@@ -40,12 +40,14 @@ const displayDate = dayjs(pubDate).format("ll")
       <slot />
     </article>
 
-    <aside id="toc-sidebar" class="hidden xl:block fixed right-[max(1rem,calc((100vw-1200px)/2))] top-24 w-56 max-h-[calc(100vh-8rem)] overflow-y-auto">
-      <nav class="border-l-2 border-base-300 pl-4 text-sm">
-        <p class="font-bold mb-2 text-base-content/60">目录</p>
-        <ul id="toc-list" class="space-y-2">
-        </ul>
-      </nav>
+    <aside id="toc-sidebar" class="hidden xl:block w-56 shrink-0">
+      <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <nav class="border-l-2 border-base-300 pl-4 text-sm">
+          <p class="font-bold mb-2 text-base-content/60">目录</p>
+          <ul id="toc-list" class="space-y-2">
+          </ul>
+        </nav>
+      </div>
     </aside>
   </main>
 </BaseLayout>
