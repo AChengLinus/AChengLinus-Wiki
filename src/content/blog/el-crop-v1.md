@@ -10,7 +10,7 @@ tags: ["项目", "教程", "Python"]
 # 光伏组件EL裁剪工具
 
 > 基于实际项目源码的案例分析教程
-> 项目路径：`EL裁剪工具/`
+> 项目路径：[`EL裁剪工具/`](https://github.com/AChengLinus/EL_cropped)
 
 ---
 
@@ -39,7 +39,7 @@ tags: ["项目", "教程", "Python"]
 
 下图是一张实际的 EL 检测照片样本，可以看到电池片在通电后发出暗红色的 EL 光：
 
-![EL检测样本照片](/images/blog/el-crop-v1/sample_el.jpg)
+![EL检测样本照片](/images/blog/el-crop-v1/S0003627.JPG)
 
 *图：太阳能电池板 EL 检测照片（原始拍摄）*
 
@@ -56,7 +56,7 @@ tags: ["项目", "教程", "Python"]
 
 | 原始EL照片（透视畸变） | 裁剪矫正后（标准矩形） |
 |:---:|:---:|
-| ![原始照片](/images/blog/el-crop-v1/sample_el.jpg) | ![裁剪结果](/images/blog/el-crop-v1/normal_crop_result.jpg) |
+| ![原始照片](/images/blog/el-crop-v1/S0003712.JPG) | ![裁剪结果](/images/blog/el-crop-v1/sample_el.jpg) |
 
 *图：左侧为原始拍摄（存在透视畸变），右侧为裁剪程序自动检测角点并矫正后的标准矩形结果*
 
@@ -512,7 +512,7 @@ for fut, idx in futures.items():
 
 ### 7.3 已登录主界面
 
-![主界面](/images/blog/el-crop-v1/02_main_page_logged_in.png)
+![主界面](/images/blog/el-crop-v1/Logged-in interface.png)
 
 *图：登录后的主界面。包含图片上传区、裁剪预览区域、参数设置等核心功能模块。*
 
@@ -910,7 +910,7 @@ def _panel_is_complete(pts_full, W, H, margin_frac=0.02):
 
 ---
 
-> 本教程基于 **华矩EL裁剪工具 V1.1 服务端** 项目源码编写。
+> 本教程基于 **EL裁剪工具** 项目源码编写。
 > 这是一个将计算机视觉、Web 服务、桌面应用三者结合的完整工业案例。
 > 
-> 截图和示意图位于项目根目录的 `/images/blog/el-crop-v1/` 文件夹下。
+> 截图和示意图位于项目根目录的 [`/images/blog/el-crop-v1/`](https://github.com/AChengLinus/EL_cropped) 文件夹下。
