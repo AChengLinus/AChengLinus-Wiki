@@ -3,7 +3,7 @@
 import { GENERATE_SLUG_FROM_TITLE } from '../config'
 
 export default function (title: string, staticSlug: string) {
-  return (
+  const generated = (
     !GENERATE_SLUG_FROM_TITLE ? staticSlug : title
       // remove leading & trailing whitespace
       .trim()
@@ -11,9 +11,11 @@ export default function (title: string, staticSlug: string) {
       .toLowerCase()
       // replace spaces
       .replace(/\s+/g, '-')
-      // remove special characters
-      .replace(/[^\w-]/g, '')
+      // remove special characters (keep word chars, CJK, and hyphens)
+      .replace(/[^\w一-鿿㐀-䶿-]/g, '')
       // remove leading & trailing separtors
       .replace(/^-+|-+$/g, '')
   )
+  // fallback to staticSlug if title-only slug is empty (e.g. all-CJK title)
+  return generated || staticSlug
 }
