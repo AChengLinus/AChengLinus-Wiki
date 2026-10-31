@@ -170,7 +170,7 @@ const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
       const re = new RegExp("(" + terms.map(reEsc).join("|") + ")", "gi");
       return safe.replace(
         re,
-        '<mark class="rounded bg-yellow-200/60 px-0.5 text-inherit">$1</mark>'
+        '<mark class="rounded bg-yellow-200/80 px-0.5 text-inherit">$1</mark>'
       );
     }
 
