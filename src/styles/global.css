@@ -44,3 +44,12 @@ article :is(h2, h3) {
 .reader-mode .reader-hide {
   display: none !important;
 }
+
+/* 筛选按钮选中态：用 data-active 属性驱动，避免被 daisyUI 的 .btn 样式覆盖 */
+#blog-filter [data-filter][data-active="true"],
+#daily-filter [data-filter][data-active="true"] {
+  background-color: #2f7ddb !important;
+  border-color: #2f7ddb !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}

@@ -20,6 +20,16 @@ const displayDate = dayjs(pubDate).format("ll")
       {heroImage && <img src={heroImage} alt={title} class="w-full mb-6" />}
       <h1 class="title my-2 text-4xl font-bold">{title}</h1>
       {pubDate && <time>{displayDate}</time>}
+
+      <!-- 工具条：分享 + 简洁模式 -->
+      <div id="share-bar" class="not-prose my-3 flex flex-wrap items-center gap-1 text-xs">
+        <button type="button" data-action="copy" class="btn btn-xs btn-ghost gap-1">🔗 复制链接</button>
+        <button type="button" data-action="native" class="btn btn-xs btn-ghost gap-1">📤 分享</button>
+        <button type="button" data-action="wechat" class="btn btn-xs btn-ghost gap-1">💬 微信文案</button>
+        <span class="grow"></span>
+        <button type="button" data-action="reader" id="reader-toggle" class="btn btn-xs btn-ghost gap-1">📖 简洁模式</button>
+      </div>
+
       <br />
       {badge && <div class="badge badge-secondary my-1">{badge}</div>}
       {
@@ -44,7 +54,7 @@ const displayDate = dayjs(pubDate).format("ll")
 
     {
       toc.length > 0 && (
-        <aside class="hidden xl:block w-80 shrink-0">
+        <aside id="toc-panel" class="hidden xl:block w-80 shrink-0">
           <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
             <nav class="border-l-2 border-base-300 pl-4 text-sm">
               <p class="font-bold mb-2 text-base-content/60">本页内容</p>
@@ -125,3 +135,105 @@ const displayDate = dayjs(pubDate).format("ll")
     </script>
   )
 }
+
+<script>
+  function postToast(msg: string) {
+    let el = document.getElementById("site-toast") as HTMLDivElement | null;
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "site-toast";
+      el.className =
+        "fixed bottom-8 left-1/2 z-[100] -translate-x-1/2 rounded-lg bg-neutral px-4 py-2 text-sm text-neutral-content shadow-lg transition-opacity duration-200";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.opacity = "1";
+    clearTimeout((el as any)._t);
+    (el as any)._t = setTimeout(() => {
+      if (el) el.style.opacity = "0";
+    }, 1800);
+  }
+
+  function postToggleReader(force?: boolean) {
+    const root = document.documentElement;
+    const on = typeof force === "boolean" ? force : !root.classList.contains("reader-mode");
+    root.classList.toggle("reader-mode", on);
+    try {
+      localStorage.setItem("blog-reader", on ? "1" : "0");
+    } catch (e) {}
+    const btn = document.getElementById("reader-toggle");
+    if (btn) btn.textContent = on ? "📖 退出简洁模式" : "📖 简洁模式";
+  }
+
+  async function postCopyText(text: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-9999px";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } catch (e2) {}
+      document.body.removeChild(ta);
+      return ok;
+    }
+  }
+
+  function setupPostShare() {
+    const bar = document.getElementById("share-bar");
+    if (!bar || (bar as HTMLElement).dataset.bound === "1") return;
+    (bar as HTMLElement).dataset.bound = "1";
+
+    bar.addEventListener("click", async (e) => {
+      const btn = (e.target as HTMLElement).closest("[data-action]");
+      if (!btn) return;
+      const action = btn.getAttribute("data-action");
+      const url = location.href.split("#")[0];
+      const heading = document.querySelector("article h1")?.textContent?.trim() || document.title;
+
+      if (action === "reader") {
+        postToggleReader();
+        return;
+      }
+      if (action === "native" && navigator.share) {
+        try {
+          await navigator.share({ title: heading, url });
+        } catch (err) {}
+        return;
+      }
+      if (action === "wechat") {
+        const ok = await postCopyText(`${heading}\n${url}`);
+        postToast(ok ? "已复制，粘贴到微信发送即可" : "复制失败，请手动复制地址栏链接");
+        return;
+      }
+      const ok = await postCopyText(url);
+      postToast(ok ? "链接已复制" : "复制失败，请手动复制地址栏链接");
+    });
+  }
+
+  function initPostTools() {
+    setupPostShare();
+    try {
+      if (localStorage.getItem("blog-reader") === "1") postToggleReader(true);
+    } catch (e) {}
+    document.querySelectorAll("article img").forEach((img) => {
+      if (!img.getAttribute("loading")) img.setAttribute("loading", "lazy");
+    });
+  }
+
+  document.addEventListener("astro:page-load", initPostTools);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPostTools);
+  } else {
+    initPostTools();
+  }
+</script>

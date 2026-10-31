@@ -111,7 +111,7 @@ const SUGGESTIONS = ["AI", "模型", "Claude", "开源", "算力", "吐槽", "�
     <!-- 分类筛选 + 搜索提示 -->
     <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
       <div class="join" id="daily-filter" role="group" aria-label="内容分类">
-        <button type="button" class="btn btn-xs join-item btn-active" data-filter="all">
+        <button type="button" class="btn btn-xs join-item" data-filter="all">
           全部 <span class="opacity-50">{totalCount}</span>
         </button>
         <button type="button" class="btn btn-xs join-item" data-filter="ai">
@@ -327,7 +327,8 @@ const SUGGESTIONS = ["AI", "模型", "Claude", "开源", "算力", "吐槽", "�
       if (!box) return;
       box.querySelectorAll("[data-filter]").forEach((btn) => {
         const on = btn.getAttribute("data-filter") === activeFilter;
-        btn.classList.toggle("btn-active", on);
+        btn.setAttribute("data-active", on ? "true" : "false");
+        btn.style.cssText = on ? "background-color:#2f7ddb !important;color:#fff !important;border-color:#2f7ddb !important;" : "";
         btn.setAttribute("aria-pressed", on ? "true" : "false");
       });
     }

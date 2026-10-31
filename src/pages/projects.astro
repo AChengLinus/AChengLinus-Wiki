@@ -1,47 +1,72 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import HorizontalCard from "../components/cards/HorizontalCard.astro";
+import ProjectCard from "../components/cards/ProjectCard.astro";
+
+const running = [
+  {
+    title: "项目工具盒",
+    desc: "华矩系列工具的统一入口，汇集太阳能电池板检测与数据处理相关的各类在线工具",
+    img: "/projects/tool-box.webp",
+    url: "https://tool.acheng9616.com/",
+    badge: "NEW",
+    host: "tool.acheng9616.com",
+  },
+  {
+    title: "AI 全自动裁剪 EL 图片工具",
+    desc: "光伏组件 EL 检测图像的自动裁剪，支持电致发光图像批量定位与精确裁切",
+    img: "/projects/ai-el-crop.png",
+    url: "https://EL.acheng9616.com/",
+    badge: "运行中",
+    host: "el.acheng9616.com",
+  },
+  {
+    title: "电网仿真对比数据",
+    desc: "HIL / PSCAD 仿真数据与实际发电数据的偏差分析，辅助评估模型精度",
+    img: "/projects/deviation-analyzer.png",
+    url: "https://wiki.acheng9616.com/blog/%E7%94%B5%E7%AB%99%E5%81%8F%E5%B7%AE%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7",
+    badge: "运行中",
+    host: "wiki.acheng9616.com",
+  },
+];
+
+const done = [
+  {
+    title: "个人网站主页",
+    desc: "各个媒体平台的入口、关于我的信息，一切的开端",
+    img: "/site/网站封面.webp",
+    url: "https://www.acheng9616.com/",
+    badge: "运行中",
+    host: "www.acheng9616.com",
+  },
+];
 ---
 
-<BaseLayout title = "日常记录" sideBarActiveItemID="projects">
-  <div>
-    <div class="text-3xl w-full font-bold mb-5">正在进行的项目</div>
+<BaseLayout title="项目" sideBarActiveItemID="projects">
+  <div class="mb-5 flex flex-wrap items-end justify-between gap-2">
+    <div>
+      <div class="w-full text-3xl font-bold">项目</div>
+      <p class="mt-1 text-sm opacity-60">正在做的东西，和已经交付的东西</p>
+    </div>
+    <div class="text-sm opacity-50">{running.length + done.length} 个项目</div>
   </div>
 
-  <HorizontalCard
-    title="AI全自动裁剪EL图片工具"
-    img="/projects/ai-el-crop.png"
-    desc="光伏组件图像识别EL裁剪工具"
-    url="https://EL.acheng9616.com/"
-    badge="运行中"
-  />
-    <HorizontalCard
-    title="电网仿真对比数据"
-    img="/projects/deviation-analyzer.png"
-    desc="电网仿真对比数据"
-    url="https://wiki.acheng9616.com/blog/%E7%94%B5%E7%AB%99%E5%81%8F%E5%B7%AE%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7"
-    badge="运行中"
-  />
-  <div class="divider my-0"></div>
-  <div class="divider my-0"></div>
-  <div>
-    <div class="text-3xl w-full font-bold mb-5 mt-10">已完成的项目</div>
+  <div class="mb-4 flex items-center gap-2">
+    <span class="inline-block h-2 w-2 rounded-full bg-success"></span>
+    <h2 class="text-lg font-bold">正在进行</h2>
+    <span class="text-sm opacity-40">{running.length}</span>
   </div>
 
-  <HorizontalCard
-    title="个人网站主页"
-    img="/site/网站封面.webp"
-    desc="我的网站主页，有我各个的媒体平台介绍，有关于我的信息"
-    url="https://www.acheng9616.com/"
-    badge="运行中"
-  />
-  <div class="divider my-0"></div>
-  <HorizontalCard
-    title="AI全自动裁剪EL图片工具"
-    img="/projects/ai-el-crop.png"
-    desc="光伏组件图像识别EL裁剪工具"
-    url="https://EL.acheng9616.com/"
-    badge="运行中"
-  />
-  <div class="divider my-0"></div>
+  <div class="mb-10 grid gap-5 sm:grid-cols-2">
+    {running.map((p) => <ProjectCard {...p} />)}
+  </div>
+
+  <div class="mb-4 flex items-center gap-2">
+    <span class="inline-block h-2 w-2 rounded-full bg-base-content/30"></span>
+    <h2 class="text-lg font-bold">已完成</h2>
+    <span class="text-sm opacity-40">{done.length}</span>
+  </div>
+
+  <div class="grid gap-5 sm:grid-cols-2">
+    {done.map((p) => <ProjectCard {...p} />)}
+  </div>
 </BaseLayout>

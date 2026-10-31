@@ -2,7 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import HorizontalCard from "../../components/cards/HorizontalCard.astro";
 import { getCollection } from "astro:content";
-import createSlug from "../../lib/createSlug"
+import createSlug from "../../lib/createSlug";
 
 export async function getStaticPaths({ paginate }) {
   const posts = await getCollection("blog");
@@ -11,121 +11,425 @@ export async function getStaticPaths({ paginate }) {
 }
 
 const { page } = Astro.props;
+
+// 全量索引：搜索与筛选都要跨分页
+const all = await getCollection("blog");
+all.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const fmtDate = (d) => {
+  const t = new Date(d);
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+};
+
+const searchIndex = all.map((p) => ({
+  t: p.data.title,
+  d: p.data.description,
+  u: "/blog/" + createSlug(p.data.title, p.slug),
+  i: p.data.heroImage || "",
+  b: p.data.badge || "",
+  g: p.data.tags || [],
+  s: fmtDate(p.data.pubDate),
+}));
+
+const total = searchIndex.length;
+const cats = [...new Set(searchIndex.map((x) => x.b).filter(Boolean))].map((b) => ({
+  key: b,
+  count: searchIndex.filter((x) => x.b === b).length,
+}));
+const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
+
+// 页码
+const currentPage = page.currentPage;
+const lastPage = page.lastPage;
+const pageUrl = (n) => (n === 1 ? "/blog/" : `/blog/${n}`);
+
+function visiblePages(cur, last) {
+  if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1);
+  const keep = new Set([1, last, cur - 1, cur, cur + 1].filter((n) => n >= 1 && n <= last));
+  const nums = [...keep].sort((a, b) => a - b);
+  const out = [];
+  let prev = 0;
+  for (const n of nums) {
+    if (prev && n - prev > 1) out.push("…");
+    out.push(n);
+    prev = n;
+  }
+  return out;
+}
+const pages = visiblePages(currentPage, lastPage);
+const SUGGESTIONS = ["AI", "Python", "工具", "项目", "本地部署"];
 ---
 
-<BaseLayout title="Blog" sideBarActiveItemID="blog">
-  <div class="mb-5">
-    <div class="text-3xl w-full font-bold">笔记</div>
+<BaseLayout title="笔记" sideBarActiveItemID="blog">
+  <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <div class="w-full text-3xl font-bold">笔记</div>
+      <p class="mt-1 text-sm opacity-60">技术笔记、踩坑记录与项目复盘</p>
+    </div>
+    <div class="text-sm opacity-50">共 {total} 篇 · 第 {currentPage} / {lastPage} 页</div>
   </div>
 
-  <div class="mb-5">
-    <input
-      id="search-input"
-      type="text"
-      placeholder="搜索笔记（支持单字匹配）..."
-      class="input input-bordered w-full"
-    />
-    <div id="search-status" class="text-sm opacity-60 mt-1"></div>
-  </div>
+  <!-- 搜索 / 筛选栏 -->
+  <div class="sticky top-0 z-20 -mx-2 mb-2 bg-base-100/90 px-2 pb-2 pt-2 backdrop-blur">
+    <div class="relative">
+      <svg
+        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-40"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="2"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"></path>
+      </svg>
+      <input
+        id="blog-search"
+        type="text"
+        placeholder="搜索标题、摘要、标签或日期，多个关键词用空格分隔…"
+        autocomplete="off"
+        spellcheck="false"
+        class="input input-bordered h-11 w-full rounded-lg pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
+      <button
+        id="blog-search-clear"
+        type="button"
+        aria-label="清空搜索"
+        class="absolute right-2 top-1/2 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-lg leading-none opacity-40 hover:bg-base-200 hover:opacity-100"
+      >
+        ×
+      </button>
+    </div>
 
-  {
-    page.data.length === 0 ? (
-      <div class="bg-base-200 border-l-4 border-secondary w-full p-4 min-w-full">
-        <p class="font-bold">Sorry!</p>
-        <p>There are no blog posts to show at the moment. Check back later!</p>
+    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
+      <div class="join" id="blog-filter" role="group" aria-label="分类">
+        <button type="button" class="btn btn-xs join-item" data-filter="all">
+          全部 <span class="opacity-50">{total}</span>
+        </button>
+        {
+          cats.map((c) => (
+            <button type="button" class="btn btn-xs join-item" data-filter={c.key}>
+              {c.key} <span class="opacity-50">{c.count}</span>
+            </button>
+          ))
+        }
       </div>
-    ) : (
-      <ul id="posts-list">
-        {page.data.map((post) => (
-          <li class="post-item">
-            <HorizontalCard
-              title={post.data.title}
-              img={post.data.heroImage}
-              desc={post.data.description}
-              url={"/blog/" + createSlug(post.data.title, post.slug)}
-              target="_self"
-              badge={post.data.badge}
-              tags={post.data.tags}
-              date={post.data.pubDate}
-            />
-            <div class="divider my-0" />
-          </li>
-        ))}
-      </ul>
-    )
-  }
+      <span class="opacity-40">|</span>
+      <span class="opacity-50">支持标题 / 摘要 / 标签 / 日期 · 按 <kbd class="kbd kbd-xs">/</kbd> 聚焦</span>
+    </div>
 
-  <div class="flex justify-between">
-    {
-      page.url.prev ? (
-        <a href={page.url.prev} class="btn btn-ghost my-10 mx-5">
-          {" "}
-          <svg
-            class="h-6 w-6 fill-current md:h-8 md:w-8"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
+    <div id="blog-search-meta" class="mt-2 hidden text-xs opacity-60"></div>
+    <div id="blog-suggest" class="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+      <span class="opacity-50">试试：</span>
+      {
+        SUGGESTIONS.map((s) => (
+          <button
+            type="button"
+            class="blog-suggest-btn rounded-full bg-base-200 px-2 py-0.5 opacity-70 transition hover:bg-base-300 hover:opacity-100"
+            data-q={s}
           >
-            <path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" />
-          </svg>{" "}
-          Recent posts
-        </a>
-      ) : (
-        <div />
-      )
-    }
-    {
-      page.url.next ? (
-        <a href={page.url.next} class="btn btn-ghost my-10 mx-5">
-          Older Posts{" "}
-          <svg
-            class="h-6 w-6 fill-current md:h-8 md:w-8"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-          >
-            {" "}
-            <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-          </svg>
-        </a>
-      ) : (
-        <div />
-      )
-    }
+            {s}
+          </button>
+        ))
+      }
+    </div>
   </div>
-</BaseLayout>
 
-<script is:inline>
-  (function() {
-    var input = document.getElementById("search-input");
-    var status = document.getElementById("search-status");
-    if (!input) return;
-    input.addEventListener("input", function() {
-      var items = document.querySelectorAll(".post-item");
-      var val = this.value.trim();
-      var visible = 0;
-      for (var i = 0; i < items.length; i++) {
-        var item = items[i];
-        if (!val) { item.style.display = ""; visible++; continue; }
-        var text = item.textContent;
-        var match = true;
-        for (var j = 0; j < val.length; j++) {
-          if (text.indexOf(val[j]) === -1) { match = false; break; }
-        }
-        item.style.display = match ? "" : "none";
-        if (match) visible++;
+  <!-- 默认视图：分页列表 -->
+  <div id="blog-default">
+    {
+      page.data.length === 0 ? (
+        <div class="w-full border-l-4 border-secondary bg-base-200 p-4">
+          <p class="font-bold">还没有笔记</p>
+          <p>写点东西吧。</p>
+        </div>
+      ) : (
+        <ul class="space-y-0">
+          {page.data.map((post) => (
+            <li class="post-item">
+              <HorizontalCard
+                title={post.data.title}
+                img={post.data.heroImage}
+                desc={post.data.description}
+                url={"/blog/" + createSlug(post.data.title, post.slug)}
+                target="_self"
+                badge={post.data.badge}
+                tags={post.data.tags}
+                date={post.data.pubDate}
+              />
+              <div class="divider my-0" />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <nav class="my-10 flex flex-wrap items-center justify-center gap-1" aria-label="分页导航">
+      {
+        currentPage > 1 ? (
+          <a href={pageUrl(currentPage - 1)} class="btn btn-sm join-item" rel="prev">
+            ← 上一页
+          </a>
+        ) : (
+          <span class="btn btn-sm join-item btn-disabled">← 上一页</span>
+        )
       }
-      if (status) {
-        if (val && visible === 0) {
-          status.textContent = "未找到匹配的笔记";
-        } else if (val) {
-          status.textContent = "找到 " + visible + " 篇匹配笔记";
-        } else {
-          status.textContent = "";
-        }
+      {
+        pages.map((p) =>
+          p === "…" ? (
+            <span class="btn btn-sm join-item btn-disabled">…</span>
+          ) : (
+            <a
+              href={pageUrl(p)}
+              class:list={["btn", "btn-sm", "join-item", p === currentPage && "btn-active"]}
+              aria-current={p === currentPage ? "page" : undefined}
+            >
+              {p}
+            </a>
+          )
+        )
       }
-    });
-  })();
-</script>
+      {
+        currentPage < lastPage ? (
+          <a href={pageUrl(currentPage + 1)} class="btn btn-sm join-item" rel="next">
+            下一页 →
+          </a>
+        ) : (
+          <span class="btn btn-sm join-item btn-disabled">下一页 →</span>
+        )
+      }
+    </nav>
+  </div>
+
+  <!-- 搜索结果 -->
+  <div id="blog-results" class="hidden">
+    <ul class="space-y-3" id="blog-results-list"></ul>
+    <div id="blog-empty" class="hidden py-16 text-center">
+      <div class="text-3xl">🔍</div>
+      <p class="mt-3 text-sm opacity-60">没有找到匹配的笔记，换个关键词试试～</p>
+    </div>
+  </div>
+
+  <script id="blog-search-index" type="application/json" is:inline set:html={searchJson}></script>
+
+  <script>
+    const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+    const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ESC[c]);
+    const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    function highlight(text, terms) {
+      const safe = esc(text);
+      if (!terms.length) return safe;
+      const re = new RegExp("(" + terms.map(reEsc).join("|") + ")", "gi");
+      return safe.replace(re, '<mark class="rounded bg-yellow-200/80 px-0.5 text-inherit">$1</mark>');
+    }
+
+    /* 与 HorizontalCard.astro 保持同样的结构 */
+    function cardHtml(it, terms) {
+      const tags = (it.g || [])
+        .slice(0, 5)
+        .map((t) => '<span class="badge badge-outline badge-sm">' + esc(t) + "</span>")
+        .join("");
+      const img = it.i
+        ? '<img src="' + esc(it.i) + '" alt="' + esc(it.t) + '" loading="lazy" class="max-w-full md:max-w-[13rem] rounded-lg" />'
+        : "";
+      return (
+        '<li><div class="rounded-lg bg-base-100 transition ease-in-out hover:shadow-xl hover:scale-[102%]"><a href="' +
+        esc(it.u) +
+        '" target="_self"><div class="hero-content flex-col md:flex-row">' +
+        img +
+        '<div class="grow w-full">' +
+        '<div class="flex items-center justify-between gap-2">' +
+        '<h1 class="text-xl font-bold">' +
+        highlight(it.t, terms) +
+        (it.b ? '<div class="badge badge-secondary mx-2">' + esc(it.b) + "</div>" : "") +
+        "</h1>" +
+        '<span class="text-sm opacity-60 shrink-0">' + esc(it.s) + "</span>" +
+        "</div>" +
+        '<p class="py-1 text-1xl">' + highlight(it.d, terms) + "</p>" +
+        '<div class="card-actions justify-end">' + tags + "</div>" +
+        "</div></div></a></div></li>"
+      );
+    }
+
+    let blogFilter = "all";
+    let blogIndex = null;
+    let blogLastPath = location.pathname;
+
+    const $ = (id) => document.getElementById(id);
+
+    function getIndex() {
+      if (blogIndex) return blogIndex;
+      const el = $("blog-search-index");
+      if (!el) return [];
+      try {
+        blogIndex = JSON.parse(el.textContent || "[]");
+      } catch (e) {
+        blogIndex = [];
+      }
+      return blogIndex;
+    }
+
+    function resetIfNavigated() {
+      if (location.pathname !== blogLastPath) {
+        blogLastPath = location.pathname;
+        blogFilter = "all";
+        blogIndex = null;
+      }
+    }
+
+    function paintFilter() {
+      const box = $("blog-filter");
+      if (!box) return;
+      box.querySelectorAll("[data-filter]").forEach((b) => {
+        const on = b.getAttribute("data-filter") === blogFilter;
+        b.setAttribute("data-active", on ? "true" : "false");
+        b.style.cssText = on ? "background-color:#2f7ddb !important;color:#fff !important;border-color:#2f7ddb !important;" : "";
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
+
+    function applyBlogSearch() {
+      const input = $("blog-search");
+      const results = $("blog-results");
+      const list = $("blog-results-list");
+      const def = $("blog-default");
+      const meta = $("blog-search-meta");
+      const clearBtn = $("blog-search-clear");
+      const suggest = $("blog-suggest");
+      const empty = $("blog-empty");
+      if (!input || !results || !list || !def || !meta) return;
+
+      const index = getIndex();
+      const raw = input.value.trim().toLowerCase();
+      const terms = raw.split(/\s+/).filter(Boolean);
+      const isDefault = terms.length === 0 && blogFilter === "all";
+
+      if (clearBtn) {
+        clearBtn.classList.toggle("hidden", terms.length === 0);
+        clearBtn.classList.toggle("flex", terms.length > 0);
+      }
+      if (suggest) suggest.classList.toggle("hidden", !isDefault);
+      paintFilter();
+
+      if (isDefault) {
+        results.classList.add("hidden");
+        def.classList.remove("hidden");
+        meta.classList.add("hidden");
+        meta.textContent = "";
+        list.innerHTML = "";
+        return;
+      }
+
+      const hits = index.filter((it) => {
+        if (blogFilter !== "all" && it.b !== blogFilter) return false;
+        if (!terms.length) return true;
+        const hay = (it.t + " " + it.d + " " + it.s + " " + it.b + " " + (it.g || []).join(" ")).toLowerCase();
+        return terms.every((t) => hay.indexOf(t) !== -1);
+      });
+
+      const shown = hits.slice(0, 60);
+      list.innerHTML = shown.map((it) => cardHtml(it, terms)).join("");
+      results.classList.remove("hidden");
+      def.classList.add("hidden");
+      meta.classList.remove("hidden");
+
+      const scope = blogFilter === "all" ? "" : blogFilter + " · ";
+      const word = input.value.trim();
+      meta.textContent =
+        hits.length === 0
+          ? scope + "没有找到" + (word ? "包含「" + word + "」的" : "") + "笔记"
+          : scope + (word ? "「" + word + "」· " : "") + "找到 " + hits.length + " 篇";
+      if (empty) empty.classList.toggle("hidden", hits.length > 0);
+    }
+
+    function bootstrapBlogSearch() {
+      resetIfNavigated();
+      paintFilter();
+      const params = new URLSearchParams(location.search);
+      const q = params.get("q");
+      const input = $("blog-search");
+      if (input && q) input.value = q;
+      if (q) applyBlogSearch();
+    }
+
+    function bindBlogOnce() {
+      if (window.__blogSearchBound) {
+        bootstrapBlogSearch();
+        return;
+      }
+      window.__blogSearchBound = true;
+
+      document.addEventListener("input", (e) => {
+        if (e.target && e.target.id === "blog-search") {
+          resetIfNavigated();
+          applyBlogSearch();
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        const t = e.target;
+        if (!t || !t.closest) return;
+
+        const fbtn = t.closest("#blog-filter [data-filter]");
+        if (fbtn) {
+          resetIfNavigated();
+          blogFilter = fbtn.getAttribute("data-filter") || "all";
+          applyBlogSearch();
+          return;
+        }
+
+        if (t.closest("#blog-search-clear")) {
+          const input = $("blog-search");
+          if (input) {
+            input.value = "";
+            applyBlogSearch();
+            input.focus();
+          }
+          return;
+        }
+
+        const sb = t.closest(".blog-suggest-btn");
+        if (sb) {
+          const input = $("blog-search");
+          if (input) {
+            resetIfNavigated();
+            input.value = sb.getAttribute("data-q") || "";
+            applyBlogSearch();
+            input.focus();
+          }
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.target && e.target.id === "blog-search" && e.key === "Escape") {
+          e.target.value = "";
+          applyBlogSearch();
+          e.target.blur();
+          return;
+        }
+        const t = e.target;
+        const typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+        if (!typing && e.key === "/") {
+          const input = $("blog-search");
+          if (input) {
+            e.preventDefault();
+            input.focus();
+            input.select();
+          }
+        }
+      });
+
+      bootstrapBlogSearch();
+    }
+
+    document.addEventListener("astro:page-load", bootstrapBlogSearch);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bindBlogOnce);
+    } else {
+      bindBlogOnce();
+    }
+  </script>
+</BaseLayout>
