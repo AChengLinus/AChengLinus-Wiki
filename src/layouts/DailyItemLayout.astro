@@ -33,12 +33,12 @@ const displayWeek = WEEK[d.day()];
 <BaseLayout title={title} description={description} image={heroImage} wide={true}>
   <a
     href="/daily"
-    class="fixed top-20 left-4 lg:left-[calc(19rem+1rem)] z-50 btn btn-ghost btn-sm shadow-lg bg-base-100/80 backdrop-blur-sm rounded-full"
+    class="mb-4 inline-flex btn btn-sm shadow-sm bg-base-100/80 backdrop-blur-sm rounded-full lg:fixed lg:top-20 lg:left-[calc(19rem+1rem)] lg:z-50 lg:mb-0"
     >&larr; 返回日常分享和吐槽</a
   >
 
   <div class="mx-auto flex w-full max-w-[1080px] items-start justify-center gap-10">
-    <article class="prose prose-lg min-w-0 max-w-[750px] flex-1 prose-img:mx-auto">
+    <article class="prose prose-lg w-full min-w-0 max-w-[750px] flex-1 prose-img:mx-auto">
       {
         heroImage && (
           <img src={heroImage} alt={title} class="w-full mb-6 rounded-lg shadow-sm" />

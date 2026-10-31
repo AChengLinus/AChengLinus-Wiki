@@ -93,7 +93,7 @@ const SUGGESTIONS = ["AI", "模型", "Claude", "开源", "算力", "吐槽", "�
       <input
         id="daily-search"
         type="text"
-        placeholder="搜索标题、摘要、标签或日期，多个关键词用空格分隔…"
+        placeholder="搜索标题、摘要、标签、日期…"
         autocomplete="off"
         spellcheck="false"
         class="input input-bordered h-11 w-full rounded-lg pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -121,8 +121,8 @@ const SUGGESTIONS = ["AI", "模型", "Claude", "开源", "算力", "吐槽", "�
           日常 <span class="opacity-50">{lifeCount}</span>
         </button>
       </div>
-      <span class="opacity-40">|</span>
-      <span class="opacity-50">支持标题 / 摘要 / 标签 / 日期 · 按 <kbd class="kbd kbd-xs">/</kbd> 聚焦</span>
+      <span class="hidden opacity-40 sm:inline">|</span>
+      <span class="opacity-50">支持标题 / 摘要 / 标签 / 日期<span class="hidden sm:inline"> · 按 <kbd class="kbd kbd-xs">/</kbd> 聚焦</span></span>
     </div>
 
     <div id="daily-search-meta" class="mt-2 hidden text-xs opacity-60"></div>

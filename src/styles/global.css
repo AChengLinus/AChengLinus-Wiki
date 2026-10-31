@@ -53,3 +53,74 @@ article :is(h2, h3) {
   color: #ffffff !important;
   font-weight: 600;
 }
+
+
+/* ==========================================================
+   移动端适配：防止内容把布局撑破导致整页横向滚动
+   ========================================================== */
+
+/* drawer 是 grid 容器，drawer-content 默认 min-width:auto 会被长内容顶开 */
+.drawer-content,
+.drawer-content > div,
+main {
+  min-width: 0;
+}
+
+/* 正文里的长链接、长单词、代码和表格要能在窄屏内换行或自己滚动 */
+.prose {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.prose :is(p, li, td, th) {
+  overflow-wrap: break-word;
+}
+
+.prose pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.prose table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.prose img,
+.prose video,
+.prose iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 文章本体在窄屏下必须跟容器一起收缩 */
+article {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 手机端把分享条按钮放大到可点（btn-xs 默认 24px 太小） */
+@media (max-width: 640px) {
+  #share-bar {
+    gap: 0.4rem;
+  }
+  #share-bar .btn {
+    height: 2rem;
+    min-height: 2rem;
+    padding-inline: 0.65rem;
+    font-size: 0.75rem;
+  }
+  /* 正文首屏别被超大标题压掉，二级标题也收一点 */
+  .prose h1 {
+    font-size: 1.6rem;
+    line-height: 1.3;
+  }
+  .prose h2 {
+    font-size: 1.35rem;
+  }
+  .prose h3 {
+    font-size: 1.15rem;
+  }
+}
