@@ -1,3 +1,46 @@
 .time-line-container>div:last-child .education__time>.education__line {
     display: none;
 }
+
+/* ==========================================================
+   文章阅读页：右侧目录 / 简洁模式
+   ========================================================== */
+
+/* 锚点跳转时给固定顶栏留出空间（不做全局平滑：长文跳转距离太远，平滑会慢到像卡死） */
+article :is(h2, h3) {
+  scroll-margin-top: 6rem;
+}
+
+/* 目录：默认只显示一级标题，当前章节展开其子项 */
+.toc-group > .toc-sub {
+  display: none;
+}
+.toc-group[data-active="true"] > .toc-sub {
+  display: block;
+}
+.toc-group[data-active="true"] > .toc-h2 {
+  opacity: 1;
+  font-weight: 600;
+  background-color: rgb(0 0 0 / 0.04);
+}
+.toc-h2,
+.toc-h3 {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* 简洁模式（纯文字阅读）：隐藏配图与目录，正文更宽的行距 */
+.reader-mode article img {
+  display: none !important;
+}
+.reader-mode #toc-panel {
+  display: none !important;
+}
+.reader-mode article {
+  max-width: 700px !important;
+  font-size: 1.075rem;
+  line-height: 1.95;
+}
+.reader-mode .reader-hide {
+  display: none !important;
+}

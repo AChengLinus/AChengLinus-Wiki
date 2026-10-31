@@ -17,7 +17,26 @@ interface Props {
 
 const { entry } = Astro.props;
 const item: DailySchema = entry.data;
-const { Content } = await entry.render();
+const { Content, headings } = await entry.render();
+
+// 目录：以 h2 分组，h3 作为子项（h1 是页面标题，不进目录）
+// 与任一 h2 同名的 h3 会被丢弃 —— 橘鸦早报「概览」章节下的子标题就是各板块名，
+// 直接铺出来会和一级目录重复
+const h2Texts = new Set(
+  headings.filter((h) => h.depth === 2).map((h) => h.text.trim())
+);
+const tocGroups: { text: string; slug: string; children: { text: string; slug: string }[] }[] = [];
+let currentGroup: (typeof tocGroups)[number] | null = null;
+for (const h of headings) {
+  if (h.depth === 2) {
+    currentGroup = { text: h.text, slug: h.slug, children: [] };
+    tocGroups.push(currentGroup);
+  } else if (h.depth === 3 && currentGroup) {
+    const text = h.text.trim();
+    if (h2Texts.has(text)) continue;
+    currentGroup.children.push({ text, slug: h.slug });
+  }
+}
 ---
 
 <DailyItemLayout
@@ -31,6 +50,7 @@ const { Content } = await entry.render();
   badge={item.badge}
   tags={item.tags}
   source={item.source}
+  toc={tocGroups}
   custom_link={item.custom_link}
   custom_link_label={item.custom_link_label}
 >

@@ -4,7 +4,10 @@ import BaseLayout from "./BaseLayout.astro";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 
-export interface Props extends DailySchema {}
+export interface Props extends DailySchema {
+  /** 目录：h2 分组，h3 作为子项 */
+  toc?: { text: string; slug: string; children: { text: string; slug: string }[] }[];
+}
 
 const {
   title,
@@ -17,6 +20,7 @@ const {
   badge,
   tags,
   source,
+  toc = [],
 } = Astro.props;
 
 dayjs.extend(localizedFormat);
@@ -26,21 +30,18 @@ const displayDate = d.format("YYYY-MM-DD");
 const displayWeek = WEEK[d.day()];
 ---
 
-<BaseLayout title={title} description={description} image={heroImage}>
+<BaseLayout title={title} description={description} image={heroImage} wide={true}>
   <a
     href="/daily"
     class="fixed top-20 left-4 lg:left-[calc(19rem+1rem)] z-50 btn btn-ghost btn-sm shadow-lg bg-base-100/80 backdrop-blur-sm rounded-full"
     >&larr; 返回日常分享和吐槽</a
   >
-  <main class="md:flex md:justify-center">
-    <article class="prose prose-lg max-w-[750px] prose-img:mx-auto">
+
+  <div class="mx-auto flex w-full max-w-[1080px] items-start justify-center gap-10">
+    <article class="prose prose-lg min-w-0 max-w-[750px] flex-1 prose-img:mx-auto">
       {
         heroImage && (
-          <img
-            src={heroImage}
-            alt={title}
-            class="w-full mb-6 rounded-lg shadow-sm"
-          />
+          <img src={heroImage} alt={title} class="w-full mb-6 rounded-lg shadow-sm" />
         )
       }
       <div>
@@ -48,7 +49,7 @@ const displayWeek = WEEK[d.day()];
           {title}
           {badge && <div class="badge badge-secondary mx-2">{badge}</div>}
         </h1>
-        <div class="mb-1 flex flex-wrap items-center gap-3 text-sm opacity-60">
+        <div class="mb-2 flex flex-wrap items-center gap-3 text-sm opacity-60">
           <time datetime={displayDate} class="font-mono">{displayDate}</time>
           <span>{displayWeek}</span>
           {
@@ -64,6 +65,23 @@ const displayWeek = WEEK[d.day()];
           <span class="text-xl">{pricing}</span>
           <span class="text-md line-through">{oldPricing}</span>
         </div>
+
+        <!-- 工具条：分享 + 简洁模式 -->
+        <div id="share-bar" class="not-prose flex flex-wrap items-center gap-1 text-xs">
+          <button type="button" data-action="copy" class="btn btn-xs btn-ghost gap-1">
+            🔗 复制链接
+          </button>
+          <button type="button" data-action="native" class="btn btn-xs btn-ghost gap-1">
+            📤 分享
+          </button>
+          <button type="button" data-action="wechat" class="btn btn-xs btn-ghost gap-1">
+            💬 微信文案
+          </button>
+          <span class="grow"></span>
+          <button type="button" data-action="reader" id="reader-toggle" class="btn btn-xs btn-ghost gap-1">
+            📖 简洁模式
+          </button>
+        </div>
       </div>
       <div class="divider my-2"></div>
       <slot />
@@ -75,18 +93,226 @@ const displayWeek = WEEK[d.day()];
         )
       }
     </article>
-  </main>
+
+    {
+      toc.length > 0 && (
+        <aside id="toc-panel" class="sticky top-24 hidden w-[200px] shrink-0 xl:block">
+          <div class="mb-2 flex items-center gap-1.5 text-xs font-semibold opacity-50">
+            <svg
+              class="h-3.5 w-3.5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" d="M4 6h16M4 12h10M4 18h13" />
+            </svg>
+            目录
+          </div>
+          <nav
+            id="toc-nav"
+            class="max-h-[calc(100vh-10rem)] space-y-0.5 overflow-y-auto pr-1 text-[13px] leading-relaxed"
+          >
+            {toc.map((g) => (
+              <div class="toc-group" data-slug={g.slug}>
+                <a
+                  href={`#${g.slug}`}
+                  class="toc-h2 block truncate rounded px-2 py-1 transition-colors hover:bg-base-200"
+                >
+                  {g.text}
+                </a>
+                {g.children.length > 0 && (
+                  <div class="toc-sub space-y-0.5 border-l border-base-300 pl-2">
+                    {g.children.map((c) => (
+                      <a
+                        href={`#${c.slug}`}
+                        class="toc-h3 block truncate rounded px-2 py-0.5 text-[12px] opacity-55 transition-colors hover:bg-base-200 hover:opacity-100"
+                      >
+                        {c.text}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+        </aside>
+      )
+    }
+  </div>
 
   <script>
-    // 正文里的图片统一懒加载，避免长文一次性拉几十张图
-    const lazy = () => {
+    /* ---------- 小提示条 ---------- */
+    function toast(msg) {
+      let el = document.getElementById("site-toast") as HTMLDivElement | null;
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "site-toast";
+        el.className =
+          "fixed bottom-8 left-1/2 z-[100] -translate-x-1/2 rounded-lg bg-neutral px-4 py-2 text-sm text-neutral-content shadow-lg transition-opacity duration-200";
+        el.style.opacity = "0";
+        document.body.appendChild(el);
+      }
+      el.textContent = msg;
+      el.style.opacity = "1";
+      clearTimeout((el as any)._t);
+      (el as any)._t = setTimeout(() => {
+        if (el) el.style.opacity = "0";
+      }, 1800);
+    }
+
+    /* ---------- 简洁模式 ---------- */
+    function toggleReader(force?: boolean) {
+      const root = document.documentElement;
+      const on = typeof force === "boolean" ? force : !root.classList.contains("reader-mode");
+      root.classList.toggle("reader-mode", on);
+      try {
+        localStorage.setItem("daily-reader", on ? "1" : "0");
+      } catch (e) {}
+      const btn = document.getElementById("reader-toggle");
+      if (btn) btn.textContent = on ? "📖 退出简洁模式" : "📖 简洁模式";
+    }
+
+    /* ---------- 复制（带兜底，clipboard API 被拒时退到 execCommand） ---------- */
+    async function copyText(text: string): Promise<boolean> {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-9999px";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try {
+          ok = document.execCommand("copy");
+        } catch (e2) {}
+        document.body.removeChild(ta);
+        return ok;
+      }
+    }
+
+    /* ---------- 分享 ---------- */
+    function setupShare() {
+      const bar = document.getElementById("share-bar");
+      if (!bar || (bar as HTMLElement).dataset.bound === "1") return;
+      (bar as HTMLElement).dataset.bound = "1";
+
+      bar.addEventListener("click", async (e) => {
+        const target = e.target as HTMLElement;
+        const btn = target.closest("[data-action]");
+        if (!btn) return;
+        const action = btn.getAttribute("data-action");
+        const url = location.href.split("#")[0];
+        const heading = document.querySelector("article h1")?.textContent?.trim() || document.title;
+
+        if (action === "reader") {
+          toggleReader();
+          return;
+        }
+        if (action === "native" && navigator.share) {
+          try {
+            await navigator.share({ title: heading, url });
+          } catch (err) {
+            /* 用户取消，不提示 */
+          }
+          return;
+        }
+        if (action === "wechat") {
+          const ok = await copyText(`${heading}\n${url}`);
+          toast(ok ? "已复制，粘贴到微信发送即可" : "复制失败，请手动复制地址栏链接");
+          return;
+        }
+        const ok = await copyText(url);
+        toast(ok ? "链接已复制" : "复制失败，请手动复制地址栏链接");
+      });
+    }
+
+    /* ---------- 目录滚动高亮 ---------- */
+    function setupToc() {
+      const nav = document.getElementById("toc-nav");
+      if (!nav || (nav as HTMLElement).dataset.bound === "1") return;
+      (nav as HTMLElement).dataset.bound = "1";
+
+      const groups = Array.from(nav.querySelectorAll<HTMLElement>(".toc-group"));
+      const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']"));
+      const targets = links
+        .map((a) => {
+          const raw = (a.getAttribute("href") || "").slice(1);
+          let slug = raw;
+          try {
+            slug = decodeURIComponent(raw);
+          } catch (e) {}
+          const el = document.getElementById(slug) || document.querySelector(`[id="${slug}"]`);
+          return { a, el: el as HTMLElement | null };
+        })
+        .filter((t) => !!t.el);
+
+      if (!targets.length) return;
+
+      let lastSlug: string | undefined;
+
+      const updateActive = () => {
+        const line = window.scrollY + 140;
+        let cur = targets[0];
+        for (const t of targets) {
+          if (t.el && t.el.getBoundingClientRect().top + window.scrollY <= line) cur = t;
+          else break;
+        }
+        const slug = (cur.a.closest(".toc-group") as HTMLElement | null)?.dataset.slug;
+        if (slug === lastSlug) return;
+        lastSlug = slug;
+
+        groups.forEach((g) => {
+          g.setAttribute("data-active", g.dataset.slug === slug ? "true" : "false");
+        });
+        nav.querySelectorAll(".toc-h3").forEach((h) => h.classList.remove("font-medium"));
+        cur.a.classList.add("font-medium");
+      };
+
+      window.addEventListener("scroll", updateActive, { passive: true });
+      window.addEventListener("resize", updateActive);
+
+      // 兜底：部分环境（无头浏览器、内嵌 webview、后台标签页）不派发 scroll 事件，
+      // 用 scrollY 轮询保证高亮始终跟随。只在滚动位置变化时才计算，开销可忽略。
+      let lastY = -1;
+      window.setInterval(() => {
+        const y = Math.round(window.scrollY);
+        if (y === lastY) return;
+        lastY = y;
+        updateActive();
+      }, 160);
+
+      updateActive();
+    }
+
+    /* ---------- 正文图片懒加载 ---------- */
+    function lazyLoad() {
       document.querySelectorAll("article img").forEach((img) => {
         if (!img.getAttribute("loading")) img.setAttribute("loading", "lazy");
         if (!img.getAttribute("decoding")) img.setAttribute("decoding", "async");
       });
-    };
-    document.addEventListener("astro:page-load", lazy);
-    if (document.readyState !== "loading") lazy();
-    else document.addEventListener("DOMContentLoaded", lazy);
+    }
+
+    function initArticlePage() {
+      lazyLoad();
+      setupShare();
+      setupToc();
+      try {
+        if (localStorage.getItem("daily-reader") === "1") toggleReader(true);
+      } catch (e) {}
+    }
+
+    document.addEventListener("astro:page-load", initArticlePage);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initArticlePage);
+    } else {
+      initArticlePage();
+    }
   </script>
 </BaseLayout>
