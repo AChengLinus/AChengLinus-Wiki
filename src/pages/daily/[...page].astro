@@ -12,7 +12,9 @@ export async function getStaticPaths({ paginate }) {
 
 const { page } = Astro.props;
 
-// 全量索引：搜索要跨分页，所以构建时把全部条目序列化进页面
+const PAGE_TITLE = "日常分享和吐槽";
+
+// 全量索引：搜索与筛选都要跨分页，构建时把全部条目序列化进页面
 const allItems = await getCollection("daily");
 allItems.sort((a, b) => b.data.updatedDate.valueOf() - a.data.updatedDate.valueOf());
 
@@ -20,6 +22,9 @@ const WEEK = ["周日", "周一", "周二", "周三", "周四", "周五", "周�
 const todayStr = dayjs().format("YYYY-MM-DD");
 const fmtDate = (d) => dayjs(d).format("YYYY-MM-DD");
 const fmtWeek = (d) => WEEK[dayjs(d).day()];
+
+/** 分类：AI 日报 / 日常 */
+const kindOf = (badge) => (badge === "AI日报" ? "ai" : "life");
 
 const searchIndex = allItems.map((item) => ({
   t: item.data.title,
@@ -29,21 +34,48 @@ const searchIndex = allItems.map((item) => ({
   b: item.data.badge || "",
   g: item.data.tags || [],
   s: fmtDate(item.data.updatedDate),
+  k: kindOf(item.data.badge),
 }));
+
+const totalCount = searchIndex.length;
+const aiCount = searchIndex.filter((x) => x.k === "ai").length;
+const lifeCount = totalCount - aiCount;
 const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
+
+// 页码
+const currentPage = page.currentPage;
+const totalPages = page.lastPage;
+const pageUrl = (n) => (n === 1 ? "/daily" : `/daily/${n}`);
+
+/** 页数多时折叠成 1 … 4 5 6 … 12 */
+function visiblePages(cur, last) {
+  if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1);
+  const keep = new Set([1, last, cur - 1, cur, cur + 1].filter((n) => n >= 1 && n <= last));
+  const nums = [...keep].sort((a, b) => a - b);
+  const out = [];
+  let prev = 0;
+  for (const n of nums) {
+    if (prev && n - prev > 1) out.push("…");
+    out.push(n);
+    prev = n;
+  }
+  return out;
+}
+const pages = visiblePages(currentPage, totalPages);
+const SUGGESTIONS = ["AI", "模型", "Claude", "开源", "算力", "吐槽", "驾校"];
 ---
 
-<BaseLayout title="Daily" sideBarActiveItemID="daily">
+<BaseLayout title={PAGE_TITLE} sideBarActiveItemID="daily">
   <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
     <div>
-      <div class="w-full text-3xl font-bold">日常吐槽</div>
-      <p class="mt-1 text-sm opacity-60">文字记录 · 每日 AI 早报与生活琐碎</p>
+      <div class="w-full text-3xl font-bold">{PAGE_TITLE}</div>
+      <p class="mt-1 text-sm opacity-60">文字记录 · AI 早报与生活琐碎</p>
     </div>
-    <div class="text-sm opacity-50">共 {allItems.length} 条</div>
+    <div class="text-sm opacity-50">共 {totalCount} 条 · 第 {currentPage} / {totalPages} 页</div>
   </div>
 
-  <!-- 搜索栏 -->
-  <div class="sticky top-0 z-20 -mx-2 mb-2 bg-base-100/90 px-2 py-2 backdrop-blur">
+  <!-- 搜索 / 筛选栏 -->
+  <div class="sticky top-0 z-20 -mx-2 mb-2 bg-base-100/90 px-2 pb-2 pt-2 backdrop-blur">
     <div class="relative">
       <svg
         class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-40"
@@ -61,7 +93,7 @@ const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
       <input
         id="daily-search"
         type="text"
-        placeholder="搜索标题、摘要、标签或日期…（按 / 聚焦）"
+        placeholder="搜索标题、摘要、标签或日期，多个关键词用空格分隔…"
         autocomplete="off"
         spellcheck="false"
         class="input input-bordered h-11 w-full rounded-lg pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -75,7 +107,39 @@ const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
         ×
       </button>
     </div>
+
+    <!-- 分类筛选 + 搜索提示 -->
+    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
+      <div class="join" id="daily-filter" role="group" aria-label="内容分类">
+        <button type="button" class="btn btn-xs join-item btn-active" data-filter="all">
+          全部 <span class="opacity-50">{totalCount}</span>
+        </button>
+        <button type="button" class="btn btn-xs join-item" data-filter="ai">
+          AI 日报 <span class="opacity-50">{aiCount}</span>
+        </button>
+        <button type="button" class="btn btn-xs join-item" data-filter="life">
+          日常 <span class="opacity-50">{lifeCount}</span>
+        </button>
+      </div>
+      <span class="opacity-40">|</span>
+      <span class="opacity-50">支持标题 / 摘要 / 标签 / 日期 · 按 <kbd class="kbd kbd-xs">/</kbd> 聚焦</span>
+    </div>
+
     <div id="daily-search-meta" class="mt-2 hidden text-xs opacity-60"></div>
+    <div id="daily-suggest" class="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+      <span class="opacity-50">试试：</span>
+      {
+        SUGGESTIONS.map((s) => (
+          <button
+            type="button"
+            class="daily-suggest-btn rounded-full bg-base-200 px-2 py-0.5 opacity-70 transition hover:bg-base-300 hover:opacity-100"
+            data-q={s}
+          >
+            {s}
+          </button>
+        ))
+      }
+    </div>
   </div>
 
   <!-- 默认视图：分页列表 -->
@@ -100,46 +164,42 @@ const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
       }
     </ul>
 
-    <div class="flex justify-between">
+    <!-- 分页 + 页码 -->
+    <nav class="my-10 flex flex-wrap items-center justify-center gap-1" aria-label="分页导航">
       {
-        page.url.prev ? (
-          <a href={page.url.prev} class="btn btn-ghost my-10 mx-5">
-            {" "}
-            <svg
-              class="h-6 w-6 fill-current md:h-8 md:w-8"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-            >
-              <path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" />
-            </svg>{" "}
-            上一页
+        currentPage > 1 ? (
+          <a href={pageUrl(currentPage - 1)} class="btn btn-sm join-item" rel="prev">
+            ← 上一页
           </a>
         ) : (
-          <div />
+          <span class="btn btn-sm join-item btn-disabled">← 上一页</span>
         )
       }
       {
-        page.url.next ? (
-          <a href={page.url.next} class="btn btn-ghost my-10 mx-5">
-            下一页{" "}
-            <svg
-              class="h-6 w-6 fill-current md:h-8 md:w-8"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
+        pages.map((p) =>
+          p === "…" ? (
+            <span class="btn btn-sm join-item btn-disabled">…</span>
+          ) : (
+            <a
+              href={pageUrl(p)}
+              class:list={["btn", "btn-sm", "join-item", p === currentPage && "btn-active"]}
+              aria-current={p === currentPage ? "page" : undefined}
             >
-              {" "}
-              <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-            </svg>
-          </a>
-        ) : (
-          <div />
+              {p}
+            </a>
+          )
         )
       }
-    </div>
+      {
+        currentPage < totalPages ? (
+          <a href={pageUrl(currentPage + 1)} class="btn btn-sm join-item" rel="next">
+            下一页 →
+          </a>
+        ) : (
+          <span class="btn btn-sm join-item btn-disabled">下一页 →</span>
+        )
+      }
+    </nav>
   </div>
 
   <!-- 搜索结果 -->
@@ -148,6 +208,20 @@ const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
     <div id="daily-empty" class="hidden py-16 text-center">
       <div class="text-3xl">🔍</div>
       <p class="mt-3 text-sm opacity-60">没有找到匹配的记录，换个关键词试试～</p>
+      <div class="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs">
+        <span class="opacity-50">试试：</span>
+        {
+          SUGGESTIONS.slice(0, 5).map((s) => (
+            <button
+              type="button"
+              class="daily-suggest-btn rounded-full bg-base-200 px-2 py-0.5 opacity-70 hover:opacity-100"
+              data-q={s}
+            >
+              {s}
+            </button>
+          ))
+        }
+      </div>
     </div>
   </div>
 
@@ -220,114 +294,198 @@ const searchJson = JSON.stringify(searchIndex).replace(/</g, "\\u003c");
       );
     }
 
-    function initDailySearch() {
-      const input = document.getElementById("daily-search");
-      const dataEl = document.getElementById("daily-search-index");
-      const results = document.getElementById("daily-results");
-      const list = document.getElementById("daily-results-list");
-      const empty = document.getElementById("daily-empty");
-      const def = document.getElementById("daily-default");
-      const meta = document.getElementById("daily-search-meta");
-      const clearBtn = document.getElementById("daily-search-clear");
-      if (!input || !dataEl || !results || !list || !def || !meta) return;
-      if (input.dataset.bound === "1") return;
-      input.dataset.bound = "1";
+    /* ---------- 状态：跨 SPA 导航用 pathname 判定并重置 ---------- */
+    const FILTER_LABEL = { all: "全部", ai: "AI 日报", life: "日常" };
+    let activeFilter = "all";
+    let indexCache = null;
+    let lastPath = location.pathname;
 
-      let index = [];
+    const $ = (id) => document.getElementById(id);
+
+    function getIndex() {
+      if (indexCache) return indexCache;
+      const el = $("daily-search-index");
+      if (!el) return [];
       try {
-        index = JSON.parse(dataEl.textContent || "[]");
+        indexCache = JSON.parse(el.textContent || "[]");
       } catch (e) {
+        indexCache = [];
+      }
+      return indexCache;
+    }
+
+    function resetIfNavigated() {
+      if (location.pathname !== lastPath) {
+        lastPath = location.pathname;
+        activeFilter = "all";
+        indexCache = null;
+      }
+    }
+
+    function paintFilter() {
+      const box = $("daily-filter");
+      if (!box) return;
+      box.querySelectorAll("[data-filter]").forEach((btn) => {
+        const on = btn.getAttribute("data-filter") === activeFilter;
+        btn.classList.toggle("btn-active", on);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
+
+    function apply() {
+      const input = $("daily-search");
+      const results = $("daily-results");
+      const list = $("daily-results-list");
+      const def = $("daily-default");
+      const meta = $("daily-search-meta");
+      const clearBtn = $("daily-search-clear");
+      const suggest = $("daily-suggest");
+      const empty = $("daily-empty");
+      if (!input || !results || !list || !def || !meta) return;
+
+      const index = getIndex();
+      const raw = input.value.trim().toLowerCase();
+      const terms = raw.split(/\s+/).filter(Boolean);
+      const isDefault = terms.length === 0 && activeFilter === "all";
+
+      if (clearBtn) {
+        clearBtn.classList.toggle("hidden", terms.length === 0);
+        clearBtn.classList.toggle("flex", terms.length > 0);
+      }
+      if (suggest) suggest.classList.toggle("hidden", !isDefault);
+      paintFilter();
+
+      if (isDefault) {
+        results.classList.add("hidden");
+        def.classList.remove("hidden");
+        meta.classList.add("hidden");
+        meta.textContent = "";
+        list.innerHTML = "";
         return;
       }
 
-      const apply = () => {
-        const raw = input.value.trim().toLowerCase();
-        const terms = raw.split(/\s+/).filter(Boolean);
-        const hasQuery = terms.length > 0;
+      const hits = index.filter((it) => {
+        if (activeFilter !== "all" && it.k !== activeFilter) return false;
+        if (!terms.length) return true;
+        const hay = (
+          it.t + " " + it.d + " " + it.s + " " + it.b + " " + (it.g || []).join(" ")
+        ).toLowerCase();
+        return terms.every((t) => hay.indexOf(t) !== -1);
+      });
 
-        if (clearBtn) {
-          clearBtn.classList.toggle("hidden", !hasQuery);
-          clearBtn.classList.toggle("flex", hasQuery);
+      const shown = hits.slice(0, 60);
+      list.innerHTML = shown.map((it) => cardHtml(it, terms)).join("");
+      results.classList.remove("hidden");
+      def.classList.add("hidden");
+      meta.classList.remove("hidden");
+
+      const scope = activeFilter === "all" ? "" : FILTER_LABEL[activeFilter] + " · ";
+      const word = input.value.trim();
+      if (hits.length === 0) {
+        meta.textContent = scope + "没有找到" + (word ? "包含「" + word + "」的" : "") + "记录";
+      } else {
+        meta.textContent =
+          scope +
+          (word ? "「" + word + "」· " : "") +
+          "找到 " +
+          hits.length +
+          " 条" +
+          (hits.length > shown.length ? "（显示前 " + shown.length + " 条）" : "");
+      }
+      if (empty) empty.classList.toggle("hidden", hits.length > 0);
+    }
+
+    /** 每次页面就绪（首次加载 / SPA 导航后）都调用 */
+    function bootstrap() {
+      resetIfNavigated();
+      paintFilter();
+      const params = new URLSearchParams(location.search);
+      const q = params.get("q");
+      const f = params.get("f");
+      if (f && ["all", "ai", "life"].indexOf(f) !== -1) activeFilter = f;
+      const input = $("daily-search");
+      if (input && q) input.value = q;
+      if (q || (f && f !== "all")) apply();
+    }
+
+    /* ---------- 事件委托：绑定一次，SPA 换了 DOM 也照样有效 ---------- */
+    function bindOnce() {
+      if (window.__dailyDelegated) {
+        bootstrap();
+        return;
+      }
+      window.__dailyDelegated = true;
+
+      document.addEventListener("input", (e) => {
+        if (e.target && e.target.id === "daily-search") {
+          resetIfNavigated();
+          apply();
         }
+      });
 
-        if (!hasQuery) {
-          results.classList.add("hidden");
-          def.classList.remove("hidden");
-          meta.classList.add("hidden");
-          meta.textContent = "";
-          list.innerHTML = "";
+      document.addEventListener("click", (e) => {
+        const t = e.target;
+        if (!t || !t.closest) return;
+
+        const fbtn = t.closest("#daily-filter [data-filter]");
+        if (fbtn) {
+          resetIfNavigated();
+          activeFilter = fbtn.getAttribute("data-filter") || "all";
+          apply();
           return;
         }
 
-        const hits = index.filter((it) => {
-          const hay = (
-            it.t + " " + it.d + " " + it.s + " " + it.b + " " + (it.g || []).join(" ")
-          ).toLowerCase();
-          return terms.every((t) => hay.indexOf(t) !== -1);
-        });
+        if (t.closest("#daily-search-clear")) {
+          const input = $("daily-search");
+          if (input) {
+            input.value = "";
+            apply();
+            input.focus();
+          }
+          return;
+        }
 
-        const shown = hits.slice(0, 60);
-        list.innerHTML = shown.map((it) => cardHtml(it, terms)).join("");
-        results.classList.remove("hidden");
-        def.classList.add("hidden");
-        meta.classList.remove("hidden");
-        meta.textContent = hits.length
-          ? "找到 " + hits.length + " 条" + (hits.length > shown.length ? "（显示前 " + shown.length + " 条）" : "")
-          : "没有找到包含「" + input.value.trim() + "」的记录";
-        if (empty) empty.classList.toggle("hidden", hits.length > 0);
-      };
-
-      input.addEventListener("input", apply);
-      if (clearBtn) {
-        clearBtn.addEventListener("click", () => {
-          input.value = "";
-          apply();
-          input.focus();
-        });
-      }
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          input.value = "";
-          apply();
-          input.blur();
+        const sb = t.closest(".daily-suggest-btn");
+        if (sb) {
+          const input = $("daily-search");
+          if (input) {
+            resetIfNavigated();
+            input.value = sb.getAttribute("data-q") || "";
+            apply();
+            input.focus();
+          }
         }
       });
 
-      const q = new URLSearchParams(location.search).get("q");
-      if (q) {
-        input.value = q;
-        apply();
-      }
-    }
-
-    function bindShortcutOnce() {
-      if (window.__dailyShortcutBound) return;
-      window.__dailyShortcutBound = true;
       document.addEventListener("keydown", (e) => {
-        const input = document.getElementById("daily-search");
-        if (!input) return;
+        if (e.target && e.target.id === "daily-search" && e.key === "Escape") {
+          e.target.value = "";
+          apply();
+          e.target.blur();
+          return;
+        }
         const t = e.target;
-        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-        if (e.key === "/") {
-          e.preventDefault();
-          input.focus();
-          input.select();
+        const typing =
+          t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+        if (!typing && e.key === "/") {
+          const input = $("daily-search");
+          if (input) {
+            e.preventDefault();
+            input.focus();
+            input.select();
+          }
         }
       });
+
+      bootstrap();
     }
 
-    document.addEventListener("astro:page-load", () => {
-      bindShortcutOnce();
-      initDailySearch();
-    });
-    if (document.readyState !== "loading") {
-      bindShortcutOnce();
-      initDailySearch();
+    document.addEventListener("astro:page-load", bootstrap);
+    document.addEventListener("astro:after-swap", bootstrap);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bindOnce);
     } else {
-      document.addEventListener("DOMContentLoaded", () => {
-        bindShortcutOnce();
-        initDailySearch();
-      });
+      bindOnce();
     }
   </script>
 </BaseLayout>

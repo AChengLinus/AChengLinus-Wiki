@@ -2,6 +2,7 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
+import { SITE_TITLE } from '../config';
 
 export interface Props {
 	title: string;
@@ -20,8 +21,8 @@ const { title, description, image = '/site/social_img.webp', ogType = 'website' 
 <meta name="generator" content={Astro.generator} />
 
 <!-- Primary Meta Tags -->
-<title>{title}</title>
-<meta name="title" content={title} />
+<title>{SITE_TITLE}</title>
+<meta name="title" content={SITE_TITLE} />
 <meta name="description" content={description} />
 
 <!-- Open Graph / Facebook -->
