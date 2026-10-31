@@ -22,6 +22,10 @@ const dailySchema = z.object({
     badge: z.string().optional(),
     checkoutUrl: z.string().optional(),
     heroImage: z.string().optional(),
+    /** 标签，参与站内搜索与筛选 */
+    tags: z.array(z.string()).optional(),
+    /** 原文出处（如橘鸦 AI 早报） */
+    source: z.string().optional(),
 });
 
 export type BlogSchema = z.infer<typeof blogSchema>;

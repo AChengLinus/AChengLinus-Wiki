@@ -12,7 +12,9 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "sync:juya": "node scripts/sync-juya.mjs",
+    "sync:daily": "node scripts/sync-juya.mjs --days=7 && astro build"
   },
   "dependencies": {
     "@astrojs/mdx": "^2.0.3",

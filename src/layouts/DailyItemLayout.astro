@@ -15,34 +15,78 @@ const {
   oldPricing,
   checkoutUrl,
   badge,
+  tags,
+  source,
 } = Astro.props;
 
 dayjs.extend(localizedFormat);
-const displayDate = dayjs(updatedDate).format("ll");
+const WEEK = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+const d = dayjs(updatedDate);
+const displayDate = d.format("YYYY-MM-DD");
+const displayWeek = WEEK[d.day()];
 ---
 
 <BaseLayout title={title} description={description} image={heroImage}>
-  <a href="/daily" class="fixed top-20 left-4 lg:left-[calc(19rem+1rem)] z-50 btn btn-ghost btn-sm shadow-lg bg-base-100/80 backdrop-blur-sm rounded-full">&larr; 返回日常吐槽</a>
+  <a
+    href="/daily"
+    class="fixed top-20 left-4 lg:left-[calc(19rem+1rem)] z-50 btn btn-ghost btn-sm shadow-lg bg-base-100/80 backdrop-blur-sm rounded-full"
+    >&larr; 返回日常吐槽</a
+  >
   <main class="md:flex md:justify-center">
     <article class="prose prose-lg max-w-[750px] prose-img:mx-auto">
       {
         heroImage && (
-          <img src={heroImage} alt={title} class="w-full mb-6" />
+          <img
+            src={heroImage}
+            alt={title}
+            class="w-full mb-6 rounded-lg shadow-sm"
+          />
         )
       }
-      <div class="">
+      <div>
         <h1 class="title my-2 text-4xl font-bold">
           {title}
           {badge && <div class="badge badge-secondary mx-2">{badge}</div>}
         </h1>
-        <div class="flex place-content-between items-center">
-          <div class="grow md:grow-0">
-            <span class="text-xl mr-1"> {pricing}</span>
-            <span class="text-md opacity-50 line-through">{oldPricing}</span>
-          </div>
+        <div class="mb-1 flex flex-wrap items-center gap-3 text-sm opacity-60">
+          <time datetime={displayDate} class="font-mono">{displayDate}</time>
+          <span>{displayWeek}</span>
+          {
+            tags?.length > 0 && (
+              <span class="flex flex-wrap gap-1.5">
+                {tags.map((t) => (
+                  <span class="rounded bg-base-200 px-1.5 py-0.5 text-xs">#{t}</span>
+                ))}
+              </span>
+            )
+          }
+          <span class="grow" />
+          <span class="text-xl">{pricing}</span>
+          <span class="text-md line-through">{oldPricing}</span>
+        </div>
       </div>
       <div class="divider my-2"></div>
       <slot />
+      {
+        source && (
+          <p class="mt-8 text-xs opacity-50">
+            原文出处：<a href={source} target="_blank" rel="noopener noreferrer">{source}</a>
+          </p>
+        )
+      }
     </article>
   </main>
+
+  <script>
+    // 正文里的图片统一懒加载，避免长文一次性拉几十张图
+    const lazy = () => {
+      document.querySelectorAll("article img").forEach((img) => {
+        if (!img.getAttribute("loading")) img.setAttribute("loading", "lazy");
+        if (!img.getAttribute("decoding")) img.setAttribute("decoding", "async");
+      });
+    };
+    document.addEventListener("astro:page-load", lazy);
+    if (document.readyState !== "loading") lazy();
+    else document.addEventListener("DOMContentLoaded", lazy);
+  </script>
 </BaseLayout>
