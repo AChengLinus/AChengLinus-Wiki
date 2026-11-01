@@ -35,6 +35,6 @@ const blogCollection = defineCollection({ schema: blogSchema });
 const dailyCollection = defineCollection({ schema: dailySchema });
 
 export const collections = {
-    'blog': blogCollection,
+    'notes': blogCollection,
     'daily': dailyCollection
 }

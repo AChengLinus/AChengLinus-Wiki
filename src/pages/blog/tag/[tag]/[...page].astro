@@ -5,7 +5,7 @@ import { getCollection } from "astro:content";
 import createSlug from "../../../../lib/createSlug";
 
 export async function getStaticPaths({ paginate }) {
-  const all_posts = await getCollection("blog");
+  const all_posts = await getCollection("notes");
   const all_tags = all_posts.flatMap((post) => {
     return post.data.tags || [];
   });

@@ -8,7 +8,7 @@
  *
  * 产出：
  *   src/content/daily/ai-daily-YYYY-MM-DD.md
- *   public/daily/juya/YYYY-MM-DD/cover.png（当天日报封面图，本地化）
+ *   public/images/daily/juya/YYYY-MM-DD/cover.png（当天日报封面图，本地化）
  *
  * 用法：
  *   node scripts/sync-juya.mjs                 # 默认最近 30 天
@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CONTENT_DIR = path.join(ROOT, "src/content/daily");
-const IMG_ROOT = path.join(ROOT, "public/daily/juya");
+const IMG_ROOT = path.join(ROOT, "public/images/daily/juya");
 const SOURCE = "https://daily.juya.uk";
 const UA = "Mozilla/5.0 (compatible; AChengLinus-Wiki sync-juya/1.0)";
 
@@ -152,7 +152,7 @@ async function main() {
     const coverUrl = extractCover(md);
     if (coverUrl) {
       const ext = (coverUrl.match(/\.(png|jpe?g|webp|gif)/i)?.[1] || "png").toLowerCase();
-      const rel = `/daily/juya/${date}/cover.${ext}`;
+      const rel = `/images/daily/juya/${date}/cover.${ext}`;
       try {
         const bytes = await download(coverUrl, path.join(ROOT, "public", rel));
         heroImage = rel;

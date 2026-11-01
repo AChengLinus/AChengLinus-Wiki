@@ -2,7 +2,7 @@
 title: "光伏组件EL裁剪工具"
 description: "基于实际项目源码的案例分析教程，详解EL太阳能电池板检测中的计算机视觉、Flask后端和工程部署"
 pubDate: "May 20 2026"
-heroImage: "/blog/el-crop-v1/webpe.png"
+heroImage: "/images/notes/el-crop-v1/webpe.png"
 badge: "教程"
 tags: ["项目", "教程", "Python"]
 ---

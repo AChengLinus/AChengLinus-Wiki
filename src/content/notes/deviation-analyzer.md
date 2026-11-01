@@ -2,7 +2,7 @@
 title: "电站偏差分析工具"
 description: "基于 Python Flask + PyWebView + ECharts 的 HIL/PSCAD 电力系统仿真偏差分析桌面应用全流程技术分解"
 pubDate: "Jun 1 2026"
-heroImage: "/blog/deviation-analyzer/04.png"
+heroImage: "/images/notes/deviation-analyzer/04.png"
 badge: "项目"
 tags: ["项目", "教程", "Python", "电力系统"]
 ---

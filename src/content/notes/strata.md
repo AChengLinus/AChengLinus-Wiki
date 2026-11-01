@@ -4,7 +4,7 @@ description: "36.9k star 的开源本地推理引擎，一键装完就能在消�
 pubDate: "2026-11-01"
 badge: "工具"
 tags: ["AI", "本地部署", "开源工具"]
-heroImage: "/blog/strata/cover.png"
+heroImage: "/images/notes/strata/cover.png"
 ---
 
 > 项目地址：[Niko1221/Strata](https://github.com/Niko1221/Strata) ｜ MIT ｜ 36.9k star ｜ C++ 42.7% · Python 29% · CUDA 11.4%

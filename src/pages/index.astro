@@ -4,7 +4,7 @@ import HorizontalCard from "../components/cards/HorizontalCard.astro";
 import { getCollection } from "astro:content";
 import createSlug from "../lib/createSlug"
 
-const posts = (await getCollection("blog")).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const posts = (await getCollection("notes")).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const last_posts = posts.slice(0, 3);
 ---
@@ -35,7 +35,7 @@ const last_posts = posts.slice(0, 3);
 
   <HorizontalCard
     title="网站主页"
-    img="/site/itemPreview.webp"
+    img="/images/site/itemPreview.webp"
     desc="在这里你能了解公告内容"
     url="https://www.acheng9616.com/"
     badge="运行中"

@@ -2,6 +2,8 @@
 title: "🤖 AI 初学者入门指南"
 description: "写给完全不懂 AI 的你 — 从零开始，用最通俗的语言理解人工智能"
 pubDate: "2026-07-08"
+heroImage: "/images/notes/AI初学者入门指南/cover.jpg"
+badge: "入门"
 tags: ["AI", "入门"]
 ---
 

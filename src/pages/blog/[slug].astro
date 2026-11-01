@@ -5,7 +5,7 @@ import PostLayout from "../../layouts/PostLayout.astro";
 import createSlug from "../../lib/createSlug"
 
 export async function getStaticPaths() {
-  const postEntries = await getCollection("blog");
+  const postEntries = await getCollection("notes");
   return postEntries.map((entry) => ({
     params: { slug: createSlug(entry.data.title, entry.slug) },
     props: { entry },
@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 }
 
 interface Props {
-  entry: CollectionEntry<"blog">;
+  entry: CollectionEntry<"notes">;
 }
 
 interface TocItem {

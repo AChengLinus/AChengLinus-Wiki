@@ -4,7 +4,7 @@ description: "DeepSeek Harness 团队的工程架构探讨：用双层架构兼�
 updatedDate: "2026-10-31"
 badge: "技术"
 tags: ["AI", "Agent", "架构", "转载"]
-heroImage: "/daily/super-agent/cover.webp"
+heroImage: "/images/daily/super-agent/cover.webp"
 source: "https://www.bilibili.com/opus/1265361021143351318"
 ---
 

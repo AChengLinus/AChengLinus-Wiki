@@ -6,47 +6,49 @@
 
 ## 目录结构
 
-```
-src/
-├── pages/                    每个文件就是一个页面路由
-│   ├── index.astro           首页 /
-│   ├── blog/                 笔记（列表 + 详情 + 标签分页）
-│   ├── daily/                日常分享和吐槽（列表分页 + 详情）
-│   ├── projects.astro        项目
-│   ├── cv.astro              个人规划
-│   ├── 404.astro             404 页
-│   └── rss.xml.js            RSS 输出
-│
-├── layouts/                  页面骨架（组合组件 + 注入全局样式）
-│   ├── BaseLayout.astro      全站框架：侧栏、顶栏、页脚
-│   ├── DailyItemLayout.astro 日常详情页：右侧目录 / 分享 / 简洁模式
-│   └── PostLayout.astro      笔记详情页
-│
-├── components/
-│   ├── layout/               全站框架零件 BaseHead Header Footer SideBar SideBarMenu SideBarFooter
-│   ├── cards/                列表卡片 Card（竖版）/ HorizontalCard（横版）
-│   ├── daily/                日常列表项 DailyListItem
-│   └── cv/                   时间线 TimeLine
-│
-├── content/                  ★ 所有内容都在这里，其余都是代码
-│   ├── blog/                 笔记（.md，可带同名文件夹放图）
-│   └── daily/                日常 + AI 早报（.md）
-│
-├── styles/global.css         全局样式（含目录高亮、简洁模式）
-├── lib/createSlug.ts         slug 生成
-├── config.ts                 站点名称 / 描述 / 开关
-└── content/config.ts         内容字段校验规则（加字段先改这里）
-```
+**一个页面对应一个内容目录 + 一个图片目录，名字保持一致。**
 
 ```
-public/                       静态资源，原样复制到站点根目录
-├── site/                     头像、favicon、社交分享图
-├── blog/                     笔记配图
-├── projects/                 项目配图
-└── daily/
-    ├── juya/                 AI 早报封面（脚本自动下载，不要手改）
-    └── jiangcun-school/      其他日常配图
+AChengLinus-Wiki/
+├── src/
+│   ├── pages/                    每个文件就是一个页面路由
+│   │   ├── index.astro           主页             /
+│   │   ├── projects.astro        项目             /projects
+│   │   ├── blog/                 笔记             /blog（列表 + 详情 + 标签分页）
+│   │   ├── daily/                日常分享和吐槽    /daily（列表分页 + 详情）
+│   │   ├── cv.astro              个人规划         /cv
+│   │   ├── 404.astro             404
+│   │   └── rss.xml.js            RSS
+│   │
+│   ├── content/                  ★ 文字内容（.md）
+│   │   ├── notes/                笔记          ↔ public/images/notes/
+│   │   └── daily/                日常 + AI 早报  ↔ public/images/daily/
+│   │
+│   ├── layouts/                  页面骨架
+│   ├── components/               页面零件（卡片 / 侧栏 / 时间线）
+│   ├── styles/global.css         全局样式
+│   └── config.ts                 站点名 / 描述 / slug 开关
+│
+└── public/                       静态资源，构建时原样拷到根目录
+    └── images/                   ★ 图片，按页面分目录
+        ├── notes/                笔记配图      ↔ src/content/notes/
+        ├── daily/                日常配图      ↔ src/content/daily/
+        ├── projects/             项目卡片封面
+        └── site/                 主页、个人规划用图
 ```
+
+| 页面 | 网址 | 内容目录 | 图片目录 |
+|---|---|---|---|
+| 主页 | `/` | `src/pages/index.astro` | `public/images/site/` |
+| 项目 | `/projects` | `src/pages/projects.astro` | `public/images/projects/` |
+| 笔记 | `/blog` | `src/content/notes/` | `public/images/notes/` |
+| 日常分享和吐槽 | `/daily` | `src/content/daily/` | `public/images/daily/` |
+| 个人规划 | `/cv` | `src/pages/cv.astro` | `public/images/site/` |
+
+> **为什么内容和图片不在同一个文件夹？**
+> 文章封面（`heroImage`）是字符串路径，只有在 `public/` 下的文件才能被直接访问。
+> 如果把图片放进 `src/content/`，所有封面都会失效，所以采用「内容在 `src/content/`、图片在 `public/images/`」的双目录，靠同名子目录对应。
+
 
 ```
 scripts/
@@ -69,10 +71,10 @@ description: "一句话摘要，会显示在列表卡片上"
 updatedDate: "2026-11-01"
 badge: "注意"                    # 可选。写成 "AI日报" 会被归到列表的「AI 日报」筛选
 tags: ["吐槽", "生活"]            # 可选，参与站内搜索
-heroImage: "/daily/my-note/cover.png"   # 可选。图片放 public/daily/my-note/ 下
+heroImage: "/images/daily/my-note/cover.png"   # 可选。图片放 public/images/daily/my-note/ 下
 ---
 
-正文用 Markdown 写，图片用 `![说明](/daily/my-note/pic.png)`。
+正文用 Markdown 写，图片用 `![说明](/images/daily/my-note/pic.png)`。
 有 `## 二级标题` 时详情页右侧会自动生成目录。
 ```
 
@@ -90,7 +92,7 @@ heroImage: "/daily/my-note/cover.png"   # 可选。图片放 public/daily/my-not
 - **补历史**：`node scripts/sync-juya.mjs --days=180`
 - **强制重抓**：加 `--force`
 
-脚本生成 `src/content/daily/ai-daily-YYYY-MM-DD.md`，并把当天封面存到 `public/daily/juya/YYYY-MM-DD/cover.png`。数据来源 `https://daily.juya.uk`。
+脚本生成 `src/content/daily/ai-daily-YYYY-MM-DD.md`，并把当天封面存到 `public/images/daily/juya/YYYY-MM-DD/cover.png`。数据来源 `https://daily.juya.uk`。
 
 ---
 
