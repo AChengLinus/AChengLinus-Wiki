@@ -239,6 +239,21 @@ const displayWeek = WEEK[d.day()];
       if (!nav || (nav as HTMLElement).dataset.bound === "1") return;
       (nav as HTMLElement).dataset.bound = "1";
 
+      /* 点击目录项：平滑滚动到对应章节（留 6rem 偏移，避开顶部） */
+      nav.addEventListener("click", (e) => {
+        const a = (e.target as HTMLElement).closest("a[href^='#']") as HTMLAnchorElement | null;
+        if (!a) return;
+        const raw = (a.getAttribute("href") || "").slice(1);
+        let slug = raw;
+        try { slug = decodeURIComponent(raw); } catch (err) {}
+        const el = document.getElementById(slug) || document.querySelector(`[id="${slug}"]`);
+        if (!el) return;
+        e.preventDefault();
+        const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 96);
+        window.scrollTo({ top, behavior: "smooth" });
+        try { history.replaceState(null, "", "#" + encodeURIComponent(slug)); } catch (err) {}
+      });
+
       const groups = Array.from(nav.querySelectorAll<HTMLElement>(".toc-group"));
       const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']"));
       const targets = links

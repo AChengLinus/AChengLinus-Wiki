@@ -95,6 +95,22 @@ const displayDate = dayjs(pubDate).format("ll")
         var links = document.querySelectorAll(".toc-link");
         if (links.length === 0) return;
 
+        // 点击目录项：平滑滚动到对应章节（留 6rem 偏移）
+        for (var li = 0; li < links.length; li++) {
+          links[li].addEventListener("click", function (ev) {
+            var href = this.getAttribute("href") || "";
+            if (href.charAt(0) !== "#") return;
+            var targetId = href.slice(1);
+            try { targetId = decodeURIComponent(targetId); } catch (e2) {}
+            var target = document.getElementById(targetId);
+            if (!target) return;
+            ev.preventDefault();
+            var targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY - 96);
+            window.scrollTo({ top: targetY, behavior: "smooth" });
+            try { history.replaceState(null, "", "#" + encodeURIComponent(targetId)); } catch (e3) {}
+          });
+        }
+
         // 先移除所有 active，再高亮指定项
         function setActive(id) {
           for (var i = 0; i < links.length; i++) {
