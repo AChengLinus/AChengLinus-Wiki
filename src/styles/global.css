@@ -21,7 +21,14 @@ article :is(h2, h3) {
 .toc-group[data-active="true"] > .toc-h2 {
   opacity: 1;
   font-weight: 600;
-  background-color: rgb(0 0 0 / 0.04);
+  color: #2f7ddb; /* 当前所在章节：蓝色 */
+  background-color: rgb(47 125 219 / 0.08);
+}
+
+/* 当前所在的小节（h3）也标蓝 */
+.toc-h3.font-medium {
+  color: #2f7ddb !important;
+  opacity: 1 !important;
 }
 .toc-h2,
 .toc-h3 {
