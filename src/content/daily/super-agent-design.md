@@ -29,9 +29,9 @@ source: "https://www.bilibili.com/opus/1265361021143351318"
 
 例如，在我们内部基于 DeepSeek Harness 运行的 Super-agent 实例中，同一个开发任务可以在 IM 和 GitHub 之间连续推进；这个实例还会持续观察公共群聊中的反馈，在无人 @ 的情况下主动定位根因并提交修复 Pull Request：
 
-![图1](/daily/super-agent/img-01.webp)
+![图1](/images/daily/super-agent/img-01.webp)
 
-![图2](/daily/super-agent/img-02.webp)
+![图2](/images/daily/super-agent/img-02.webp)
 
 具体来说，我们认为 Super-agent 具备以下四个基础特征：
 
@@ -46,7 +46,7 @@ source: "https://www.bilibili.com/opus/1265361021143351318"
 
 下图展示了 Super-agent 的整体系统架构，图中各模块的标号 [2] 至 [6] 分别对应下文第 2 至第 6 节：
 
-![图3](/daily/super-agent/img-03.webp)
+![图3](/images/daily/super-agent/img-03.webp)
 
 
 ## 2. 双层架构
@@ -59,7 +59,7 @@ source: "https://www.bilibili.com/opus/1265361021143351318"
 
 为了兼顾连续性与吞吐量，我们可以将“维护全局连续性”与“高并发执行”拆分到两个不同的层级中：由常驻的 **Router 层**（2.1 节）统一承接人类交互与全局协调，由上下文隔离的 **Worker 层**（2.2 节）并发执行具体任务，如下图所示：
 
-![图4](/daily/super-agent/img-04.webp)
+![图4](/images/daily/super-agent/img-04.webp)
 
 通过这一双层架构，系统在底层接管了上下文管理与并发执行，从而在用户侧淡化了 Session 的存在，使用户面对的始终是同一个 Super-agent。从这个角度看，让用户手动管理 Session，在很大程度上是从底层 LLM API 延续下来的设计惯性；Session 应当是系统的实现细节，而不应是用户的认知负担。
 
@@ -111,7 +111,7 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 - **程序层策略（作为 Fast Path）**：针对事件来源、群组范围、用户或机器人白名单等确定性条件，直接通过代码进行快速准入检查，例如对不同来源分别设置“仅响应明确请求”“作为候选事件”或“直接忽略”，在调用模型前滤除大部分无关消息。
 - **语义层策略（作为 Slow Path）**：通过程序层准入的候选事件交给 LLM，由它根据用提示词编写的策略和上下文判断是否需要行动。语义层同时作为面向人类的自然语言扩展点，方便随时通过提示词开关或新增策略，如下图所示：
 
-![图5](/daily/super-agent/img-05.webp)
+![图5](/images/daily/super-agent/img-05.webp)
 
 
 ### 3.2 事件路由
@@ -120,14 +120,14 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 
 在实际工作流中，同一个 GitHub Pull Request、同一个 IM 话题或同一封往来邮件串下的连续事件构成一条事件流，即 **Thread**：
 
-![图6](/daily/super-agent/img-06.webp)
+![图6](/images/daily/super-agent/img-06.webp)
 
 在 Router 层根据某个 Thread 的初始事件创建 Worker Session 后，该 Worker 会直接订阅对应的 Thread，从而将事件路由分为如下图所示的两条路径：
 
 - **已订阅（Fast Path）**：同一 Thread 下的后续事件由程序直通已订阅的 Worker，无需 Router 层再次调用工具转发。若新事件超出了当前任务的范围，Worker 也可取消订阅或交回 Router 层重新分派。
 - **未订阅（Slow Path）**：Router 层仍可观测所有事件以掌握全局状态，但仅负责判断和分派尚未被订阅的新事件。
 
-![图7](/daily/super-agent/img-07.webp)
+![图7](/images/daily/super-agent/img-07.webp)
 
 此外，Thread 与 Worker 之间的订阅是多对多的关系。一个 Worker 可以同时订阅多个相关的 Thread，同一个 Thread 也可以被多个 Worker 订阅。当多个 Worker 在同一个工作环境或讨论中发生交集时，该 Thread 下的新事件会同时直通给所有订阅它的 Worker，使它们无需点对点通信，也有机会获知彼此的操作并自行解决冲突。而在输出侧，Worker 仍将关键结论汇报给 Router 层，由 Router 层统一向用户回复并同步全局记忆。
 
@@ -146,7 +146,7 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 
 此外，在大量后续事件直通 Worker、且系统在长期运行中累积了许多历史任务后，Router 层既不能把所有任务的全量历史都放入自己的上下文窗口，又需要在用户跨信道提起某个旧任务时找回上下文。将 Inline & Spill 一致地应用到系统中的各类对象后，就得到了一种按需展开的多跳检索机制，即**链式召回（Chain of Recall）**。这种链式召回过程缓解了 Router 层在长程中丢失先前信息的问题，如下图所示：
 
-![图8](/daily/super-agent/img-08.webp)
+![图8](/images/daily/super-agent/img-08.webp)
 
 具体来说，系统为 Trigger、Thread 和 Worker Session 等对象赋予唯一 ID，并在注入时内联紧密关联对象的 ID，使这些对象在底层构成一张引用图。由于每一次调用工具召回的对象本身同样遵循 Inline & Spill，其返回结果中又会内联下一跳关联对象的摘要与 ID，模型便可以从当前事件出发，顺着引用关系逐步按需召回上下文。
 
@@ -159,7 +159,7 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 
 在个人助手场景下，当收到一封会议邀约邮件或待办消息时，Agent 可以先在后台核对日程冲突、搜集相关背景资料并备好回复草稿，待用户过目后即可直接确认发出。在研发协作场景下同样如此，例如我们在公司的 DeepSeek Harness 内部用户群中配置了一条“静默复现并修复”策略：当群里有人反馈问题或讨论改动方案时，Agent 先在后台尝试复现并寻找修复方案，只有在确认问题并找到简单的修复方案后，才会把结果交付给用户，否则全程保持安静。
 
-![图9](/daily/super-agent/img-09.webp)
+![图9](/images/daily/super-agent/img-09.webp)
 
 
 ## 4. 面向人的交互
@@ -171,7 +171,7 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 
 在经典的 ReAct Loop 中，模型发起一次同步的 run() 工具调用后，循环会阻塞，直到工具执行完毕并返回最终结果，在此期间会话无法响应任何新的用户输入。要消除这一阻塞，需要将对话从一问一答的半双工模式转变为全双工模式，如下图所示：
 
-![图10](/daily/super-agent/img-10.webp)
+![图10](/images/daily/super-agent/img-10.webp)
 
 为此，我们将耗时的命令与子任务工具调用改为异步的 和 ，构成**异步 ReAct Loop**。模型调用  后立即收到“已启动（Started）”的返回，循环不再等待该工具；在后台工具执行完成后，系统再将最终结果作为一条新的事件消息投递进会话；同时，模型也可以根据上下文调用  主动终止执行时间过长的后台命令。
 
@@ -212,7 +212,7 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 
 由此，一个 Agent 不再受限于单台机器，而是可以在不同的执行设备之间切换，根据任务需要选择环境来执行命令并获取环境中的上下文。它甚至能够支持间歇在线的设备，例如在用户的某台个人设备重新上线后，再由云端 Agent 自动触发并完成需要在该设备上执行的任务。下图展示了计算、持久化状态与各类执行环境分两层解耦后的结构：
 
-![图11](/daily/super-agent/img-11.webp)
+![图11](/images/daily/super-agent/img-11.webp)
 
 
 ## 6. Watch Dog
@@ -241,9 +241,9 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 
 **提示优先委派**则写为 *"Every message of the chat reaches you, so work you run yourself keeps stopping for new messages. Prefer handing each piece of work to a subagent of its own, and do only small things yourself..."*。
 
-![图12](/daily/super-agent/img-12.webp)
+![图12](/images/daily/super-agent/img-12.webp)
 
-![图13](/daily/super-agent/img-13.webp)
+![图13](/images/daily/super-agent/img-13.webp)
 
 从任务完成时间看，Super-agent 的 p50 与 p95 分别为 12.4 分钟与 15.7 分钟，显著优于带 Subagent 工具的单 Session。原因在于，带 Subagent 的单 Session 在实验场景下受提示词影响较大，主 Session 常常决定自己直接执行任务，导致总完成时间长、性能不稳定。在中性提示下，模型在 5 次运行中一次都没有调用 Subagent，所有工作都在主 Session 中进行并不断被新消息打断，p95 达到 29.5 分钟；改为提示优先委派后，模型在 5 次运行中有 4 次进行了委派，完成时间有所缩短但整体仍慢于 Super-agent，且剩下 1 次它判断工作“很小”而选择自己执行，形成了图中的紫色长尾。相比于在单 Session 中依赖提示词工程和模型临场判断分不分工，双层架构通过让 Router 不直接执行具体工作、Worker 仅接收所订阅 Thread 的消息，在系统层面上缓解了这一问题。
 
@@ -254,7 +254,7 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 
 为了验证 2.1 节中单个常驻 Router Session 的吞吐上限与批处理机制，我们单独对 Router 层进行了压力测试：让 Router 调用真实模型、Worker 使用 Mock 模型，并将需要决定的 Trigger 到达速率从每分钟约 1 条逐步提升至约 40 条，观察平均 batch 大小、单次请求耗时与单个决定分摊的推理时间。
 
-![图14](/daily/super-agent/img-14.webp)
+![图14](/images/daily/super-agent/img-14.webp)
 
 如上图所示，当需要决定的 Trigger 到达速率从每分钟约 1 条升至约 40 条时，平均 batch 大小从 1.0 升至 2.8，而单次请求耗时仅从 2.5 秒增至 3.9 秒，增长慢于 batch 大小，从而使单个决定分摊的推理时间从 6.4 秒降至 1.6 秒。这意味着当外部事件突发拥堵时，Router 层能够通过自动合并积压事件提高有效吞吐。这也解释了为什么在 7.1 节中，即使去掉直通使 Router 的峰值负载增加，仍未触及单 Router 的吞吐瓶颈。因此在我们目前的团队规模下，无需过早对 Router 层做水平切分而牺牲全局上下文的连续性。
 
@@ -306,4 +306,4 @@ Worker 不会直接与人类交互，其推理过程和工具调用不会直接�
 
 > 本文的部分设计已在[dsh-superagent-prototype​](https://www.bilibili.com/york/link-middle-page?navhide=1&rid=1265361021143351318&r_type=0&redirect_url=https%3A%2F%2Fgithub.com%2Fdeepseek-ai%2Fdsh-superagent-prototype&spm_id_from=333.1369.0.0)中实现。该插件只是一种为了验证技术路线而提供的原型，并非 DeepSeek 的正式产品。Author & Acknowledgements本文源于 DeepSeek Harness 团队的共同实践。Yujia Qiao 完成了系统实现和本文写作，Huanqi Cao, Zui Chen, Xieting Chu, Tianyi Cui, Shiyuan Feng, Yudong Han, Kexin Liu, Shichun Liu, Gesi Luo, Yifan Shi, Tongrui Xiong, Hanxiang Xu, C.C. Yu, Ziya Zhang, F. Zhou 等参与审阅讨论并提供反馈。系统的实现与文章的形成，离不开团队日常的交流与积累。
 
-![图15](/daily/super-agent/img-15.webp)
+![图15](/images/daily/super-agent/img-15.webp)

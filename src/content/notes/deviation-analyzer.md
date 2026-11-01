@@ -11,7 +11,7 @@ tags: ["项目", "教程", "Python", "电力系统"]
 
 > 一个基于 Python Flask + PyWebView + ECharts 的 HIL/PSCAD 电力系统仿真偏差分析桌面应用
 
-![工具主界面](/blog/deviation-analyzer/01.png)
+![工具主界面](/images/notes/deviation-analyzer/01.png)
 
 ---
 
@@ -310,9 +310,9 @@ function loadEcharts(cb) {
 | **跨工况对比** | `tab-comparison` | 多工况柱状图/折线图/热力图/数据对比表                                                                       |
 | **阈值管理**   | `tab-limits`     | 允许偏差阈值编辑 + 超限检查 + 数据管理（打开/删除）                                                         |
 
-![波形对比界面](/blog/deviation-analyzer/02.png)
+![波形对比界面](/images/notes/deviation-analyzer/02.png)
 
-![单工况分析](/blog/deviation-analyzer/03.png)
+![单工况分析](/images/notes/deviation-analyzer/03.png)
 
 ### 5.4 ECharts 图表技巧
 
@@ -336,7 +336,7 @@ markArea: {
 }
 ```
 
-![跨工况对比](/blog/deviation-analyzer/04.png)
+![跨工况对比](/images/notes/deviation-analyzer/04.png)
 
 ### 5.5 XLSX 导出实现
 
@@ -363,7 +363,7 @@ var imgUrl = cmpChart.getDataURL({type: 'png', pixelRatio: 2, backgroundColor: '
 
 这个实现绕过了 SheetJS 原生不支持插入图片的限制，直接操作 XLSX 内部的 Open XML ZIP 结构。
 
-![阈值管理与数据管理](/blog/deviation-analyzer/05.png)
+![阈值管理与数据管理](/images/notes/deviation-analyzer/05.png)
 
 ### 5.6 PyWebView 桥接
 
@@ -527,7 +527,7 @@ deviation-analyzer/
     └── css/                       # 早期独立CSS (已弃用)
 ```
 
-![项目文件结构](/blog/deviation-analyzer/06.png)
+![项目文件结构](/images/notes/deviation-analyzer/06.png)
 
 ---
 
@@ -549,7 +549,7 @@ deviation-analyzer/
 
 8. **PyWebView 优雅退出** — `confirm_close=False` + JS 轮询 + 确认弹窗，防止误关闭导致数据丢失
 
-![导出报告预览](/blog/deviation-analyzer/07.png)
+![导出报告预览](/images/notes/deviation-analyzer/07.png)
 
 ---
 

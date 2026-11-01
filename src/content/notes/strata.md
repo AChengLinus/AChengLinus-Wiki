@@ -77,11 +77,11 @@ irm https://github.com/Niko1221/Strata/releases/latest/download/install.ps1 | ie
 
 ## 桌面版长什么样
 
-![Strata 桌面应用：左边对话、中间文件、右边实时预览](/blog/strata/app-chat.png)
+![Strata 桌面应用：左边对话、中间文件、右边实时预览](/images/notes/strata/app-chat.png)
 
 这截图挺能说明定位的：不是一个"聊天窗口"，是一个**带工作区的编程环境**。左边是任务和 workspace，中间是对话 + 文件编辑（能看到它跑了 2 条命令、读了 1 个文件、改了 3 个文件、还自己做了语法检查），右边是生成结果的实时预览。左下角显示当前跑的是 `Qwen3.8-Flash-Next / Gyro-S · GPU 1`。
 
-![终端模式下可以实时看模型活动、速度、内存占用](/blog/strata/terminal-monitor.png)
+![终端模式下可以实时看模型活动、速度、内存占用](/images/notes/strata/terminal-monitor.png)
 
 终端模式也不是裸的 `stdin/stdout`，有实时监控面板：速度、内存、最近的请求。
 
