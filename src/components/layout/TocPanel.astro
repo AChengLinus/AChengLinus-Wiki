@@ -97,12 +97,16 @@ const items = toc.filter((t) => t.depth === 2 || t.depth === 3);
     /* 滚动时高亮当前章节 */
     let lastHref: string | null = null;
     const update = () => {
-      const line = window.scrollY + OFFSET + 40;
+      // 判断线放在视口 1/4 处：标题刚进入视口上方就切换，避免高亮落后一整节
+      const line = window.scrollY + Math.round(window.innerHeight * 0.25);
       let cur = targets[0];
       for (const t of targets) {
         if (t.el && t.el.getBoundingClientRect().top + window.scrollY <= line) cur = t;
         else break;
       }
+      // 滚到底部时强制高亮最后一项（否则最后一节永远不会被点亮）
+      const atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4;
+      if (atBottom) cur = targets[targets.length - 1];
       const href = cur.a.getAttribute("href");
       if (href === lastHref) return;
       lastHref = href;
