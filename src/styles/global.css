@@ -12,29 +12,7 @@ article :is(h2, h3) {
 }
 
 /* 目录：默认只显示一级标题，当前章节展开其子项 */
-.toc-group > .toc-sub {
-  display: none;
-}
-.toc-group[data-active="true"] > .toc-sub {
-  display: block;
-}
-.toc-group[data-active="true"] > .toc-h2 {
-  opacity: 1;
-  font-weight: 600;
-  color: #2f7ddb; /* 当前所在章节：蓝色 */
-  background-color: rgb(47 125 219 / 0.08);
-}
 
-/* 当前所在的小节（h3）也标蓝 */
-.toc-h3.font-medium {
-  color: #2f7ddb !important;
-  opacity: 1 !important;
-}
-.toc-h2,
-.toc-h3 {
-  text-decoration: none;
-  color: inherit;
-}
 
 /* 简洁模式（纯文字阅读）：隐藏配图与目录，正文更宽的行距 */
 .reader-mode article img {

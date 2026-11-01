@@ -1,0 +1,140 @@
+---
+/**
+ * 文章右侧目录（日常分享和吐槽 / 笔记 共用同一套）
+ *
+ * 平铺展示 h2 + h3，当前章节高亮蓝色，点击平滑滚动。
+ * 数据格式：{ depth: 2 | 3, text, slug }[]
+ */
+interface TocItem {
+  depth: number;
+  text: string;
+  slug: string;
+}
+
+interface Props {
+  toc: TocItem[];
+}
+
+const { toc = [] } = Astro.props;
+const items = toc.filter((t) => t.depth === 2 || t.depth === 3);
+---
+
+{
+  items.length > 0 && (
+    <aside id="toc-panel" class="sticky top-24 hidden w-72 shrink-0 xl:block">
+      <div class="mb-2 flex items-center gap-1.5 text-xs font-semibold opacity-50">
+        <svg
+          class="h-3.5 w-3.5"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+        >
+          <path stroke-linecap="round" d="M4 6h16M4 12h10M4 18h13" />
+        </svg>
+        目录
+      </div>
+      <nav
+        id="toc-list"
+        class="max-h-[calc(100vh-10rem)] space-y-0.5 overflow-y-auto pr-1 text-[13px] leading-relaxed"
+      >
+        {items.map((item) => (
+          <a
+            href={`#${item.slug}`}
+            class:list={[
+              "toc-link block truncate rounded px-2 py-1 no-underline transition-colors hover:bg-base-200",
+              item.depth === 3 ? "pl-5 text-[12px]" : "font-medium",
+            ]}
+          >
+            {item.text}
+          </a>
+        ))}
+      </nav>
+    </aside>
+  )
+}
+
+<script>
+  const OFFSET = 96;
+
+  function setupToc() {
+    const nav = document.getElementById("toc-list");
+    if (!nav || (nav as HTMLElement).dataset.bound === "1") return;
+    (nav as HTMLElement).dataset.bound = "1";
+
+    const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>("a.toc-link"));
+    const resolve = (a: HTMLAnchorElement) => {
+      const raw = (a.getAttribute("href") || "").slice(1);
+      let id = raw;
+      try {
+        id = decodeURIComponent(raw);
+      } catch {}
+      return { id, el: document.getElementById(id) || document.querySelector(`[id="${id}"]`) };
+    };
+
+    const targets = links
+      .map((a) => ({ a, el: resolve(a).el }))
+      .filter((t) => !!t.el);
+    if (!targets.length) return;
+
+    /* 点击目录项：平滑滚动到对应章节 */
+    nav.addEventListener("click", (e) => {
+      const a = (e.target as HTMLElement).closest("a.toc-link") as HTMLAnchorElement | null;
+      if (!a) return;
+      const { id, el } = resolve(a);
+      if (!el) return;
+      e.preventDefault();
+      window.scrollTo({
+        top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - OFFSET),
+        behavior: "smooth",
+      });
+      try {
+        history.replaceState(null, "", "#" + encodeURIComponent(id));
+      } catch {}
+    });
+
+    /* 滚动时高亮当前章节 */
+    let lastHref: string | null = null;
+    const update = () => {
+      const line = window.scrollY + OFFSET + 40;
+      let cur = targets[0];
+      for (const t of targets) {
+        if (t.el && t.el.getBoundingClientRect().top + window.scrollY <= line) cur = t;
+        else break;
+      }
+      const href = cur.a.getAttribute("href");
+      if (href === lastHref) return;
+      lastHref = href;
+
+      links.forEach((a) => {
+        const on = a.getAttribute("href") === href;
+        a.classList.toggle("text-primary", on);
+        a.classList.toggle("font-semibold", on);
+        a.classList.toggle("opacity-100", on);
+        a.classList.toggle("opacity-55", !on);
+      });
+    };
+
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+
+    /* 兜底：部分环境不派发 scroll 事件，用 scrollY 轮询保证高亮跟随 */
+    let lastY = -1;
+    window.setInterval(() => {
+      const y = Math.round(window.scrollY);
+      if (y === lastY) return;
+      lastY = y;
+      update();
+    }, 160);
+
+    update();
+  }
+
+  document.addEventListener("astro:page-load", setupToc);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupToc);
+  } else {
+    setupToc();
+  }
+</script>

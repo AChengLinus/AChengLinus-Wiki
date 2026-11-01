@@ -1,6 +1,7 @@
 ---
 import { type DailySchema } from "../content/config";
 import BaseLayout from "./BaseLayout.astro";
+import TocPanel from "../components/layout/TocPanel.astro";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 
@@ -28,6 +29,12 @@ const WEEK = ["周日", "周一", "周二", "周三", "周四", "周五", "周�
 const d = dayjs(updatedDate);
 const displayDate = d.format("YYYY-MM-DD");
 const displayWeek = WEEK[d.day()];
+
+// 目录展平：h2 与 h3 同级平铺（深度标记缩进），与笔记页共用同一套目录组件
+const flatToc = toc.flatMap((g) => [
+  { depth: 2, text: g.text, slug: g.slug },
+  ...g.children.map((c) => ({ depth: 3, text: c.text, slug: c.slug })),
+]);
 ---
 
 <BaseLayout title={title} description={description} image={heroImage} wide={true}>
@@ -94,52 +101,7 @@ const displayWeek = WEEK[d.day()];
       }
     </article>
 
-    {
-      toc.length > 0 && (
-        <aside id="toc-panel" class="sticky top-24 hidden w-[200px] shrink-0 xl:block">
-          <div class="mb-2 flex items-center gap-1.5 text-xs font-semibold opacity-50">
-            <svg
-              class="h-3.5 w-3.5"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-            >
-              <path stroke-linecap="round" d="M4 6h16M4 12h10M4 18h13" />
-            </svg>
-            目录
-          </div>
-          <nav
-            id="toc-nav"
-            class="max-h-[calc(100vh-10rem)] space-y-0.5 overflow-y-auto pr-1 text-[13px] leading-relaxed"
-          >
-            {toc.map((g) => (
-              <div class="toc-group" data-slug={g.slug}>
-                <a
-                  href={`#${g.slug}`}
-                  class="toc-h2 block truncate rounded px-2 py-1 transition-colors hover:bg-base-200"
-                >
-                  {g.text}
-                </a>
-                {g.children.length > 0 && (
-                  <div class="toc-sub space-y-0.5 border-l border-base-300 pl-2">
-                    {g.children.map((c) => (
-                      <a
-                        href={`#${c.slug}`}
-                        class="toc-h3 block truncate rounded px-2 py-0.5 text-[12px] opacity-55 transition-colors hover:bg-base-200 hover:opacity-100"
-                      >
-                        {c.text}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
-        </aside>
-      )
-    }
+    <TocPanel toc={flatToc} />
   </div>
 
   <script>
@@ -233,79 +195,6 @@ const displayWeek = WEEK[d.day()];
       });
     }
 
-    /* ---------- 目录滚动高亮 ---------- */
-    function setupToc() {
-      const nav = document.getElementById("toc-nav");
-      if (!nav || (nav as HTMLElement).dataset.bound === "1") return;
-      (nav as HTMLElement).dataset.bound = "1";
-
-      /* 点击目录项：平滑滚动到对应章节（留 6rem 偏移，避开顶部） */
-      nav.addEventListener("click", (e) => {
-        const a = (e.target as HTMLElement).closest("a[href^='#']") as HTMLAnchorElement | null;
-        if (!a) return;
-        const raw = (a.getAttribute("href") || "").slice(1);
-        let slug = raw;
-        try { slug = decodeURIComponent(raw); } catch (err) {}
-        const el = document.getElementById(slug) || document.querySelector(`[id="${slug}"]`);
-        if (!el) return;
-        e.preventDefault();
-        const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 96);
-        window.scrollTo({ top, behavior: "smooth" });
-        try { history.replaceState(null, "", "#" + encodeURIComponent(slug)); } catch (err) {}
-      });
-
-      const groups = Array.from(nav.querySelectorAll<HTMLElement>(".toc-group"));
-      const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']"));
-      const targets = links
-        .map((a) => {
-          const raw = (a.getAttribute("href") || "").slice(1);
-          let slug = raw;
-          try {
-            slug = decodeURIComponent(raw);
-          } catch (e) {}
-          const el = document.getElementById(slug) || document.querySelector(`[id="${slug}"]`);
-          return { a, el: el as HTMLElement | null };
-        })
-        .filter((t) => !!t.el);
-
-      if (!targets.length) return;
-
-      let lastSlug: string | undefined;
-
-      const updateActive = () => {
-        const line = window.scrollY + 140;
-        let cur = targets[0];
-        for (const t of targets) {
-          if (t.el && t.el.getBoundingClientRect().top + window.scrollY <= line) cur = t;
-          else break;
-        }
-        const slug = (cur.a.closest(".toc-group") as HTMLElement | null)?.dataset.slug;
-        if (slug === lastSlug) return;
-        lastSlug = slug;
-
-        groups.forEach((g) => {
-          g.setAttribute("data-active", g.dataset.slug === slug ? "true" : "false");
-        });
-        nav.querySelectorAll(".toc-h3").forEach((h) => h.classList.remove("font-medium"));
-        cur.a.classList.add("font-medium");
-      };
-
-      window.addEventListener("scroll", updateActive, { passive: true });
-      window.addEventListener("resize", updateActive);
-
-      // 兜底：部分环境（无头浏览器、内嵌 webview、后台标签页）不派发 scroll 事件，
-      // 用 scrollY 轮询保证高亮始终跟随。只在滚动位置变化时才计算，开销可忽略。
-      let lastY = -1;
-      window.setInterval(() => {
-        const y = Math.round(window.scrollY);
-        if (y === lastY) return;
-        lastY = y;
-        updateActive();
-      }, 160);
-
-      updateActive();
-    }
-
     /* ---------- 正文图片懒加载 ---------- */
     function lazyLoad() {
       document.querySelectorAll("article img").forEach((img) => {
@@ -317,7 +206,6 @@ const displayWeek = WEEK[d.day()];
     function initArticlePage() {
       lazyLoad();
       setupShare();
-      setupToc();
       try {
         if (localStorage.getItem("daily-reader") === "1") toggleReader(true);
       } catch (e) {}

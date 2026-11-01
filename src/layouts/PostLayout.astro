@@ -1,6 +1,7 @@
 ---
 import { type BlogSchema } from "../content/config";
 import BaseLayout from "./BaseLayout.astro";
+import TocPanel from "../components/layout/TocPanel.astro";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 
@@ -52,105 +53,11 @@ const displayDate = dayjs(pubDate).format("ll")
       <slot />
     </article>
 
-    {
-      toc.length > 0 && (
-        <aside id="toc-panel" class="hidden xl:block w-80 shrink-0">
-          <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
-            <nav class="border-l-2 border-base-300 pl-4 text-sm">
-              <p class="font-bold mb-2 text-base-content/60">本页内容</p>
-              <ul id="toc-list" class="space-y-2">
-                {
-                  toc.map((item) => (
-                    <li class={item.depth === 3 ? "ml-4" : ""}>
-                      <a href={"#" + item.slug} class="toc-link text-base-content/60 hover:text-primary transition-all duration-300 no-underline block">{item.text}</a>
-                    </li>
-                  ))
-                }
-              </ul>
-            </nav>
-          </div>
-        </aside>
-      )
-    }
+    <TocPanel toc={toc} />
   </main>
 </BaseLayout>
 
-{
-  toc.length > 0 && (
-    <script is:inline>
-      (function() {
-        var article = document.querySelector("article");
-        if (!article) return;
 
-        // 给标题生成 id（兼容无 id 的情况）
-        var hs = article.querySelectorAll("h2, h3");
-        for (var i = 0; i < hs.length; i++) {
-          var h = hs[i];
-          if (!h.id) {
-            h.id = h.textContent.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9一-鿿-]/g, "");
-          }
-        }
-
-        // 滚动监听：高亮当前可见的目录项
-        var links = document.querySelectorAll(".toc-link");
-        if (links.length === 0) return;
-
-        // 点击目录项：平滑滚动到对应章节（留 6rem 偏移）
-        for (var li = 0; li < links.length; li++) {
-          links[li].addEventListener("click", function (ev) {
-            var href = this.getAttribute("href") || "";
-            if (href.charAt(0) !== "#") return;
-            var targetId = href.slice(1);
-            try { targetId = decodeURIComponent(targetId); } catch (e2) {}
-            var target = document.getElementById(targetId);
-            if (!target) return;
-            ev.preventDefault();
-            var targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY - 96);
-            window.scrollTo({ top: targetY, behavior: "smooth" });
-            try { history.replaceState(null, "", "#" + encodeURIComponent(targetId)); } catch (e3) {}
-          });
-        }
-
-        // 先移除所有 active，再高亮指定项
-        function setActive(id) {
-          for (var i = 0; i < links.length; i++) {
-            var link = links[i];
-            if (link.getAttribute("href") === "#" + id) {
-              link.classList.remove("text-base-content/60", "font-normal");
-              link.classList.add("text-primary", "font-bold");
-            } else {
-              link.classList.remove("text-primary", "font-bold");
-              link.classList.add("text-base-content/60", "font-normal");
-            }
-          }
-        }
-
-        var observer = new IntersectionObserver(function(entries) {
-          var visible = [];
-          for (var i = 0; i < entries.length; i++) {
-            if (entries[i].isIntersecting) {
-              visible.push(entries[i].target);
-            }
-          }
-          if (visible.length > 0) {
-            // 选最靠上的可见标题
-            var top = visible[0];
-            for (var i = 1; i < visible.length; i++) {
-              if (visible[i].getBoundingClientRect().top < top.getBoundingClientRect().top) {
-                top = visible[i];
-              }
-            }
-            setActive(top.id);
-          }
-        }, { rootMargin: "-80px 0px -60% 0px" });
-
-        for (var i = 0; i < hs.length; i++) {
-          observer.observe(hs[i]);
-        }
-      })();
-    </script>
-  )
-}
 
 <script>
   function postToast(msg: string) {
